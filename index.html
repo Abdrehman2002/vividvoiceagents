@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>HBL Microfinance Bank — AI Voice Agent Suite | Vivid SNS</title>
-<meta name="description" content="Three specialised AI voice agents for HBL Microfinance Bank — FAQ & Support (Sara), Sales & Lead Qualification (Zara), and Complaint Resolution (Nadia). Deployed in Roman Urdu, available 24/7."/>
+<title>Bank AI Agent Suite — Vivid Voice</title>
+<meta name="description" content="Three specialised AI voice agents for banking — FAQ Support, Sales & Lead Qualification, and Complaint Resolution. Available 24/7 in Roman Urdu."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/dist/index.umd.js"></script>
 <style>
   :root {
     --black: #020408; --deep: #050c14; --card: #08111c;
@@ -61,60 +62,66 @@
   .agent-card { background:var(--card); padding:2.5rem 2rem; display:flex; flex-direction:column; gap:1.5rem; transition:background 0.25s; position:relative; overflow:hidden; }
   .agent-card:hover { background:#0b1826; }
   .agent-card::before { content:''; position:absolute; top:0; left:0; width:3px; height:0; transition:height 0.35s ease; }
-  .sara-card::before { background:var(--cyan); }
-  .zara-card::before { background:var(--gold); }
+  .sara-card::before  { background:var(--cyan); }
+  .zara-card::before  { background:var(--gold); }
   .nadia-card::before { background:var(--orange); }
   .agent-card:hover::before { height:100%; }
 
   .agent-header { display:flex; align-items:flex-start; gap:1.2rem; }
-  .agent-avatar { width:52px; height:52px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
-  .sara-avatar { background:var(--cyan-dim); border:1px solid rgba(50,174,198,0.25); }
-  .zara-avatar { background:var(--gold-dim); border:1px solid var(--gold-border); }
+  .agent-avatar { width:52px; height:52px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .sara-avatar  { background:var(--cyan-dim);   border:1px solid rgba(50,174,198,0.25); }
+  .zara-avatar  { background:var(--gold-dim);   border:1px solid var(--gold-border); }
   .nadia-avatar { background:var(--orange-dim); border:1px solid var(--orange-border); }
+
+  /* Avatar icons — simple SVG lines, no emoji */
+  .avatar-icon { width:22px; height:22px; }
+
   .agent-title-group { flex:1; }
-  .agent-name { font-size:1.25rem; font-weight:800; color:var(--white); letter-spacing:-0.02em; margin-bottom:0.2rem; }
-  .agent-role { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; }
-  .sara-role { color:var(--cyan); }
-  .zara-role { color:var(--gold); }
-  .nadia-role { color:var(--orange); }
+
+  /* Role is now the headline, name is secondary */
+  .agent-role-main { font-size:1.1rem; font-weight:800; color:var(--white); letter-spacing:-0.02em; margin-bottom:0.2rem; }
+  .agent-name-sub  { font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.12em; text-transform:uppercase; }
+  .sara-name  { color:var(--cyan); }
+  .zara-name  { color:var(--gold); }
+  .nadia-name { color:var(--orange); }
 
   .agent-desc { color:var(--muted); font-size:0.92rem; line-height:1.7; }
 
   .capability-list { list-style:none; display:flex; flex-direction:column; gap:0.55rem; }
   .capability-list li { display:flex; align-items:flex-start; gap:0.7rem; font-size:0.86rem; color:rgba(232,244,255,0.75); line-height:1.5; }
   .cap-dot { width:6px; height:6px; border-radius:50%; margin-top:0.4rem; flex-shrink:0; }
-  .sara-dot { background:var(--cyan); }
-  .zara-dot { background:var(--gold); }
+  .sara-dot  { background:var(--cyan); }
+  .zara-dot  { background:var(--gold); }
   .nadia-dot { background:var(--orange); }
 
-  .agent-footer { display:flex; gap:0.8rem; flex-wrap:wrap; margin-top:auto; }
-  .call-btn { flex:1; min-width:140px; padding:0.75rem 1rem; border-radius:5px; font-family:'Syne',sans-serif; font-size:0.85rem; font-weight:700; cursor:pointer; border:none; display:flex; align-items:center; justify-content:center; gap:0.5rem; transition:all 0.2s; }
-  .sara-call { background:linear-gradient(135deg,var(--cyan),#29c4a0); color:var(--black); }
-  .sara-call:hover { box-shadow:0 0 20px var(--cyan-glow); transform:translateY(-1px); }
-  .zara-call { background:linear-gradient(135deg,var(--gold),#c9a420); color:var(--black); }
-  .zara-call:hover { box-shadow:0 0 20px var(--gold-glow); transform:translateY(-1px); }
-  .nadia-call { background:linear-gradient(135deg,var(--orange),#ea580c); color:white; }
+  .agent-footer { display:flex; gap:0.8rem; flex-wrap:wrap; margin-top:auto; align-items:center; }
+  .call-btn { flex:1; min-width:140px; padding:0.75rem 1rem; border-radius:5px; font-family:'Syne',sans-serif; font-size:0.85rem; font-weight:700; cursor:pointer; border:none; display:flex; align-items:center; justify-content:center; gap:0.5rem; transition:all 0.2s; letter-spacing:-0.01em; }
+  .sara-call  { background:linear-gradient(135deg,var(--cyan),#29c4a0);     color:var(--black); }
+  .sara-call:hover  { box-shadow:0 0 20px var(--cyan-glow);   transform:translateY(-1px); }
+  .zara-call  { background:linear-gradient(135deg,var(--gold),#c9a420);     color:var(--black); }
+  .zara-call:hover  { box-shadow:0 0 20px var(--gold-glow);   transform:translateY(-1px); }
+  .nadia-call { background:linear-gradient(135deg,var(--orange),#ea580c);   color:white; }
   .nadia-call:hover { box-shadow:0 0 20px var(--orange-glow); transform:translateY(-1px); }
   .call-btn:disabled { opacity:0.55; cursor:not-allowed; transform:none !important; box-shadow:none !important; }
   .call-btn.ending { background:transparent !important; color:#e05c5c !important; border:1px solid rgba(224,92,92,0.4) !important; }
   .call-btn.ending:hover { background:rgba(224,92,92,0.1) !important; }
 
-  /* LIVE INDICATOR */
+  /* LIVE BADGE */
   .live-badge { display:none; font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.25rem 0.6rem; border-radius:999px; align-items:center; gap:0.4rem; }
   .live-badge::before { content:'●'; font-size:0.4rem; animation:blink 1s ease-in-out infinite; }
   .live-badge.visible { display:inline-flex; }
-  .sara-live { color:var(--cyan); background:var(--cyan-dim); border:1px solid rgba(50,174,198,0.25); }
-  .sara-live::before { color:var(--cyan); }
-  .zara-live { color:var(--gold); background:var(--gold-dim); border:1px solid var(--gold-border); }
-  .zara-live::before { color:var(--gold); }
+  .sara-live  { color:var(--cyan);   background:var(--cyan-dim);   border:1px solid rgba(50,174,198,0.25); }
+  .sara-live::before  { color:var(--cyan); }
+  .zara-live  { color:var(--gold);   background:var(--gold-dim);   border:1px solid var(--gold-border); }
+  .zara-live::before  { color:var(--gold); }
   .nadia-live { color:var(--orange); background:var(--orange-dim); border:1px solid var(--orange-border); }
   .nadia-live::before { color:var(--orange); }
 
   /* WAVE */
   @keyframes waveBar { 0%,100%{transform:scaleY(0.3)} 50%{transform:scaleY(1)} }
   .wave-bar { width:3px; border-radius:2px; animation:waveBar 0.8s ease-in-out infinite; transform-origin:bottom; display:none; }
-  .sara-wave { background:var(--cyan); }
-  .zara-wave { background:var(--gold); }
+  .sara-wave  { background:var(--cyan); }
+  .zara-wave  { background:var(--gold); }
   .nadia-wave { background:var(--orange); }
   .wave-bar.active { display:block; }
   .wave-bar:nth-child(2){animation-delay:.12s}
@@ -125,32 +132,32 @@
   /* STATS STRIP */
   .stats-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:8px; overflow:hidden; max-width:900px; margin:0 auto 4rem; }
   .stat-item { background:var(--card); padding:1.8rem 1.5rem; text-align:center; }
-  .stat-num { font-size:2.2rem; font-weight:800; letter-spacing:-0.03em; color:var(--white); margin-bottom:0.3rem; }
+  .stat-num   { font-size:2.2rem; font-weight:800; letter-spacing:-0.03em; color:var(--white); margin-bottom:0.3rem; }
   .stat-label { font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; }
 
   /* HOW IT WORKS */
   .steps-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:8px; overflow:hidden; max-width:1000px; margin:0 auto; }
   .step { background:var(--card); padding:2rem 1.8rem; }
-  .step-num { font-family:'DM Mono',monospace; font-size:2rem; font-weight:300; color:rgba(50,174,198,0.15); margin-bottom:1rem; }
+  .step-num   { font-family:'DM Mono',monospace; font-size:2rem; font-weight:300; color:rgba(50,174,198,0.15); margin-bottom:1rem; }
   .step-title { font-size:0.95rem; font-weight:700; color:var(--white); margin-bottom:0.5rem; }
-  .step-desc { font-size:0.84rem; color:var(--muted); line-height:1.65; }
+  .step-desc  { font-size:0.84rem; color:var(--muted); line-height:1.65; }
 
   /* ACTIVE CALL BANNER */
   .call-banner { display:none; position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1rem 1.5rem; box-shadow:0 8px 40px rgba(0,0,0,0.6); z-index:200; align-items:center; gap:1.5rem; backdrop-filter:blur(20px); min-width:320px; max-width:90vw; }
   .call-banner.visible { display:flex; }
   .banner-info { flex:1; }
   .banner-label { font-family:'DM Mono',monospace; font-size:0.58rem; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.2rem; }
-  .banner-name { font-size:0.95rem; font-weight:700; color:var(--white); }
-  .banner-end { background:rgba(224,92,92,0.15); color:#e05c5c; border:1px solid rgba(224,92,92,0.35); border-radius:5px; padding:0.5rem 1rem; font-family:'Syne',sans-serif; font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+  .banner-name  { font-size:0.95rem; font-weight:700; color:var(--white); }
+  .banner-end   { background:rgba(224,92,92,0.15); color:#e05c5c; border:1px solid rgba(224,92,92,0.35); border-radius:5px; padding:0.5rem 1rem; font-family:'Syne',sans-serif; font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
   .banner-end:hover { background:rgba(224,92,92,0.25); }
   .banner-wave { display:flex; align-items:center; gap:3px; height:22px; }
 
   /* CTA */
   .cta-section { text-align:center; padding:6rem 5vw; background:var(--deep); position:relative; overflow:hidden; }
   .cta-section::before { content:''; position:absolute; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle,rgba(50,174,198,0.06),transparent 70%); top:50%; left:30%; transform:translate(-50%,-50%); pointer-events:none; }
-  .cta-section::after { content:''; position:absolute; width:400px; height:400px; border-radius:50%; background:radial-gradient(circle,rgba(219,184,45,0.05),transparent 70%); top:50%; left:70%; transform:translate(-50%,-50%); pointer-events:none; }
+  .cta-section::after  { content:''; position:absolute; width:400px; height:400px; border-radius:50%; background:radial-gradient(circle,rgba(219,184,45,0.05),transparent 70%); top:50%; left:70%; transform:translate(-50%,-50%); pointer-events:none; }
   .cta-section h2 { max-width:700px; margin:0 auto 1rem; }
-  .cta-section p { color:var(--muted); font-size:1rem; max-width:500px; margin:0 auto 2.5rem; line-height:1.7; }
+  .cta-section p  { color:var(--muted); font-size:1rem; max-width:500px; margin:0 auto 2.5rem; line-height:1.7; }
 
   /* FOOTER */
   footer { padding:2rem 5vw; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; background:var(--black); }
@@ -173,11 +180,11 @@
 
 <!-- NAV -->
 <nav>
-  <a href="index.html" class="logo">Vivid <span>SNS</span> <span style="color:var(--muted);font-weight:400;font-size:0.85rem;margin-left:0.5rem;">Banking</span></a>
+  <a href="index.html" class="logo">Vivid <span>Voice</span></a>
   <div class="nav-right">
     <a href="#agents" class="nav-link">Agents</a>
-    <a href="#how" class="nav-link">How It Works</a>
-    <a href="login.html" class="nav-btn">Dashboard →</a>
+    <a href="#how"    class="nav-link">How It Works</a>
+    <a href="login.html" class="nav-btn">Dashboard</a>
   </div>
 </nav>
 
@@ -185,16 +192,12 @@
 <div class="hero">
   <div class="hero-glow-a"></div>
   <div class="hero-glow-b"></div>
-  <div class="hero-tag">HBL Microfinance Bank — AI Agent Suite</div>
+  <div class="hero-tag">Bank AI Agent Suite</div>
   <h1>Three <em>Specialised AI Agents</em><br>for Modern Banking</h1>
-  <p>Sara, Zara, and Nadia handle FAQ support, sales qualification, and complaint resolution — in Roman Urdu, 24 hours a day, across every channel.</p>
+  <p>FAQ support, sales qualification, and complaint resolution — handled by dedicated voice agents in Roman Urdu, 24 hours a day, every day.</p>
   <div class="hero-actions">
-    <a href="#agents" class="btn-primary">
-      <span>🎧</span> Talk to an Agent
-    </a>
-    <a href="login.html" class="btn-outline">
-      <span>📊</span> View Dashboard
-    </a>
+    <a href="#agents" class="btn-primary">Talk to an Agent</a>
+    <a href="login.html" class="btn-outline">View Dashboard</a>
   </div>
 </div>
 
@@ -210,26 +213,30 @@
 
 <!-- AGENTS -->
 <section class="section" id="agents">
-  <div class="section-tag">Meet the Team</div>
-  <h2>Your Banking Voice Agents</h2>
-  <p class="section-sub">Each agent is purpose-built for one role — trained on HBL Microfinance products, policies, and processes. Click to start a live call.</p>
+  <div class="section-tag">Voice Agents</div>
+  <h2>Your Banking Voice Agent Suite</h2>
+  <p class="section-sub">Each agent is purpose-built for one role — trained on banking products, policies, and processes. Click any card to start a live call.</p>
 
   <div class="agents-grid">
 
-    <!-- SARA -->
+    <!-- FAQ SUPPORT -->
     <div class="agent-card sara-card">
       <div class="agent-header">
-        <div class="agent-avatar sara-avatar">🏦</div>
+        <div class="agent-avatar sara-avatar">
+          <svg class="avatar-icon" viewBox="0 0 24 24" fill="none" stroke="#32aec6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </div>
         <div class="agent-title-group">
-          <div class="agent-name">Sara</div>
-          <div class="agent-role sara-role">FAQ & Support Specialist</div>
+          <div class="agent-role-main">FAQ &amp; Support Specialist</div>
+          <div class="agent-name-sub sara-name">Voice Agent — Sara</div>
         </div>
       </div>
       <div class="agent-desc">
-        Sara is the first line of response for every inbound inquiry. She answers questions about loan products, account types, documentation requirements, profit rates, mobile banking, and branch locations — instantly, in Roman Urdu.
+        First line of response for every inbound inquiry. Answers questions on loan products, account types, documentation requirements, profit rates, mobile banking, and branch locations — instantly, in Roman Urdu.
       </div>
       <ul class="capability-list">
-        <li><span class="cap-dot sara-dot"></span>Product info — all 7 loans and 4 account types</li>
+        <li><span class="cap-dot sara-dot"></span>Product info — all loan and account types</li>
         <li><span class="cap-dot sara-dot"></span>Documentation requirements per product</li>
         <li><span class="cap-dot sara-dot"></span>Application process walkthrough</li>
         <li><span class="cap-dot sara-dot"></span>Profit rates, terms and eligibility</li>
@@ -243,29 +250,33 @@
           <div class="wave-bar sara-wave" id="sw3"></div>
           <div class="wave-bar sara-wave" id="sw4"></div>
           <div class="wave-bar sara-wave" id="sw5"></div>
-          <span class="live-badge sara-live" id="sara-live-badge"></span>
+          <span class="live-badge sara-live" id="sara-live-badge">Live</span>
         </div>
         <button class="call-btn sara-call" id="sara-btn" onclick="handleCall('sara')">
-          📞 Talk to Sara
+          Talk to this Agent
         </button>
       </div>
     </div>
 
-    <!-- ZARA -->
+    <!-- SALES -->
     <div class="agent-card zara-card">
       <div class="agent-header">
-        <div class="agent-avatar zara-avatar">📈</div>
+        <div class="agent-avatar zara-avatar">
+          <svg class="avatar-icon" viewBox="0 0 24 24" fill="none" stroke="#dbb82d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+          </svg>
+        </div>
         <div class="agent-title-group">
-          <div class="agent-name">Zara</div>
-          <div class="agent-role zara-role">Sales & Lead Qualification</div>
+          <div class="agent-role-main">Sales &amp; Lead Specialist</div>
+          <div class="agent-name-sub zara-name">Voice Agent — Zara</div>
         </div>
       </div>
       <div class="agent-desc">
-        Zara qualifies every inbound and outbound lead using the BANT framework — Budget, Authority, Need, Timeline. She identifies the right product, assesses eligibility, handles objections, and books callbacks with a lead score attached.
+        Qualifies every inbound and outbound lead using the BANT framework. Identifies the right product, assesses eligibility, handles objections, and books callbacks with a lead score attached.
       </div>
       <ul class="capability-list">
         <li><span class="cap-dot zara-dot"></span>BANT lead qualification framework</li>
-        <li><span class="cap-dot zara-dot"></span>Product matching across 7 loan categories</li>
+        <li><span class="cap-dot zara-dot"></span>Product matching across loan categories</li>
         <li><span class="cap-dot zara-dot"></span>Income and employment assessment</li>
         <li><span class="cap-dot zara-dot"></span>Objection handling — cost, time, eligibility</li>
         <li><span class="cap-dot zara-dot"></span>Hot / Warm / Cold lead scoring</li>
@@ -278,31 +289,35 @@
           <div class="wave-bar zara-wave" id="zw3"></div>
           <div class="wave-bar zara-wave" id="zw4"></div>
           <div class="wave-bar zara-wave" id="zw5"></div>
-          <span class="live-badge zara-live" id="zara-live-badge"></span>
+          <span class="live-badge zara-live" id="zara-live-badge">Live</span>
         </div>
         <button class="call-btn zara-call" id="zara-btn" onclick="handleCall('zara')">
-          📞 Talk to Zara
+          Talk to this Agent
         </button>
       </div>
     </div>
 
-    <!-- NADIA -->
+    <!-- COMPLAINTS -->
     <div class="agent-card nadia-card">
       <div class="agent-header">
-        <div class="agent-avatar nadia-avatar">🛡️</div>
+        <div class="agent-avatar nadia-avatar">
+          <svg class="avatar-icon" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
         <div class="agent-title-group">
-          <div class="agent-name">Nadia</div>
-          <div class="agent-role nadia-role">Complaint Resolution</div>
+          <div class="agent-role-main">Complaint Resolution</div>
+          <div class="agent-name-sub nadia-name">Voice Agent — Nadia</div>
         </div>
       </div>
       <div class="agent-desc">
-        Nadia handles every complaint — loan issues, account problems, fraud alerts, staff feedback, digital banking faults — with empathy and precision. She assigns priority levels (P1–P4), generates reference numbers, and commits to SLA timelines.
+        Handles every complaint — loan issues, account problems, fraud alerts, staff feedback, digital banking faults — with empathy and precision. Assigns priority levels, generates reference numbers, and commits to SLA timelines on the call.
       </div>
       <ul class="capability-list">
-        <li><span class="cap-dot nadia-dot"></span>Complaint logging across 7 categories</li>
+        <li><span class="cap-dot nadia-dot"></span>Complaint logging across all categories</li>
         <li><span class="cap-dot nadia-dot"></span>Priority classification — P1 Critical to P4 Low</li>
-        <li><span class="cap-dot nadia-dot"></span>Reference number generation (MFB-XXXX-R)</li>
-        <li><span class="cap-dot nadia-dot"></span>SLA timeline committed on call</li>
+        <li><span class="cap-dot nadia-dot"></span>Reference number generation on call</li>
+        <li><span class="cap-dot nadia-dot"></span>SLA timeline committed immediately</li>
         <li><span class="cap-dot nadia-dot"></span>Fraud case escalation and amount capture</li>
         <li><span class="cap-dot nadia-dot"></span>Digital banking troubleshooting</li>
       </ul>
@@ -313,10 +328,10 @@
           <div class="wave-bar nadia-wave" id="nw3"></div>
           <div class="wave-bar nadia-wave" id="nw4"></div>
           <div class="wave-bar nadia-wave" id="nw5"></div>
-          <span class="live-badge nadia-live" id="nadia-live-badge"></span>
+          <span class="live-badge nadia-live" id="nadia-live-badge">Live</span>
         </div>
         <button class="call-btn nadia-call" id="nadia-btn" onclick="handleCall('nadia')">
-          📞 Talk to Nadia
+          Talk to this Agent
         </button>
       </div>
     </div>
@@ -328,7 +343,7 @@
 <section class="section alt-bg" id="how">
   <div class="section-tag">Process</div>
   <h2>How Each Agent Works</h2>
-  <p class="section-sub">Every call is handled end-to-end by the agent — from greeting to resolution — with full post-call analysis logged automatically.</p>
+  <p class="section-sub">Every call is handled end-to-end — from greeting to resolution — with full post-call analysis logged automatically.</p>
   <div class="steps-grid">
     <div class="step"><div class="step-num">01</div><div class="step-title">Caller is Greeted</div><div class="step-desc">The agent answers in Roman Urdu with a natural, warm greeting. No IVR menus. No hold time.</div></div>
     <div class="step"><div class="step-num">02</div><div class="step-title">Intent Detected</div><div class="step-desc">The agent identifies why the caller is calling and routes the conversation to the right flow within seconds.</div></div>
@@ -342,14 +357,14 @@
   <div class="section-tag">Get Started</div>
   <h2>See Live Call Data in the Dashboard</h2>
   <p>Every call — recording, transcript, sentiment, outcome — is available the moment it ends. Access your banking agent analytics now.</p>
-  <a href="login.html" class="btn-primary" style="display:inline-flex;">📊 Open Dashboard</a>
+  <a href="login.html" class="btn-primary" style="display:inline-flex;">Open Dashboard</a>
 </section>
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-brand">Vivid <span>SNS</span></div>
-  <div class="footer-info">HBL Microfinance Bank — AI Voice Agent Suite<br>Powered by Retell AI · Roman Urdu · 24/7</div>
-  <a href="login.html" class="footer-link">Dashboard →</a>
+  <div class="footer-brand">Vivid <span>Voice</span></div>
+  <div class="footer-info">Bank AI Agent Suite — Powered by Retell AI<br>Roman Urdu · 24/7 Availability</div>
+  <a href="login.html" class="footer-link">Dashboard</a>
 </footer>
 
 <!-- ACTIVE CALL BANNER -->
@@ -368,13 +383,17 @@
   <button class="banner-end" onclick="endCall()">End Call</button>
 </div>
 
-<script type="module">
-import { RetellWebClient } from 'https://esm.sh/retell-client-js-sdk'
-
+<script>
 const AGENTS = {
-  sara:  { id: 'agent_fa9b348a78254f61b2aecc7936', name: 'Sara — FAQ Support',    wave: ['sw1','sw2','sw3','sw4','sw5'], badge: 'sara-live-badge', btn: 'sara-btn', color: 'sara' },
-  zara:  { id: 'agent_318393fc9565f28c8b31fc2ae3', name: 'Zara — Sales',           wave: ['zw1','zw2','zw3','zw4','zw5'], badge: 'zara-live-badge', btn: 'zara-btn', color: 'zara' },
-  nadia: { id: 'agent_687ccd039e4d348dd7829b71e0', name: 'Nadia — Complaints',     wave: ['nw1','nw2','nw3','nw4','nw5'], badge: 'nadia-live-badge', btn: 'nadia-btn', color: 'nadia' },
+  sara:  { id:'agent_fa9b348a78254f61b2aecc7936', name:'FAQ & Support Specialist', wave:['sw1','sw2','sw3','sw4','sw5'], badge:'sara-live-badge',  btn:'sara-btn'  },
+  zara:  { id:'agent_318393fc9565f28c8b31fc2ae3', name:'Sales & Lead Specialist',   wave:['zw1','zw2','zw3','zw4','zw5'], badge:'zara-live-badge',  btn:'zara-btn'  },
+  nadia: { id:'agent_687ccd039e4d348dd7829b71e0', name:'Complaint Resolution',      wave:['nw1','nw2','nw3','nw4','nw5'], badge:'nadia-live-badge', btn:'nadia-btn' },
+}
+
+const BTN_LABELS = {
+  sara:  'Talk to this Agent',
+  zara:  'Talk to this Agent',
+  nadia: 'Talk to this Agent',
 }
 
 let client = new RetellWebClient()
@@ -386,50 +405,42 @@ client.on('call_started', () => {
   document.getElementById('banner-name').textContent = a.name
   document.getElementById('call-banner').classList.add('visible')
   a.wave.forEach(id => document.getElementById(id).classList.add('active'))
-  document.getElementById(a.badge).textContent = 'Live'
   document.getElementById(a.badge).classList.add('visible')
   const btn = document.getElementById(a.btn)
-  btn.textContent = '🔴 End Call'
+  btn.textContent = 'End Call'
   btn.classList.add('ending')
 })
 
-client.on('call_ended', () => {
-  resetUI()
-})
-
+client.on('call_ended', () => resetUI())
 client.on('agent_start_talking', () => {
   if (!activeAgent) return
   AGENTS[activeAgent].wave.forEach(id => { document.getElementById(id).style.opacity = '1' })
 })
-
 client.on('agent_stop_talking', () => {
   if (!activeAgent) return
   AGENTS[activeAgent].wave.forEach(id => { document.getElementById(id).style.opacity = '0.4' })
 })
-
-client.on('error', () => { resetUI() })
+client.on('error', () => resetUI())
 
 function resetUI() {
-  Object.values(AGENTS).forEach(a => {
+  Object.keys(AGENTS).forEach(key => {
+    const a = AGENTS[key]
     a.wave.forEach(id => document.getElementById(id).classList.remove('active'))
     document.getElementById(a.badge).classList.remove('visible')
     const btn = document.getElementById(a.btn)
     btn.disabled = false
     btn.classList.remove('ending')
+    btn.textContent = BTN_LABELS[key]
   })
-  if (activeAgent) {
-    const a = AGENTS[activeAgent]
-    document.getElementById(a.btn).textContent = `📞 Talk to ${activeAgent.charAt(0).toUpperCase() + activeAgent.slice(1)}`
-  }
   activeAgent = null
   document.getElementById('call-banner').classList.remove('visible')
 }
 
-window.handleCall = async (agentKey) => {
+async function handleCall(agentKey) {
   if (activeAgent === agentKey) { endCall(); return; }
   if (activeAgent) { endCall(); return; }
 
-  const a = AGENTS[agentKey]
+  const a   = AGENTS[agentKey]
   const btn = document.getElementById(a.btn)
   btn.disabled = true
   btn.textContent = 'Connecting...'
@@ -437,21 +448,21 @@ window.handleCall = async (agentKey) => {
   try {
     const res = await fetch('/api/create-web-call', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agent_id: a.id }),
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({agent_id: a.id}),
     })
     const data = await res.json()
     if (!data.access_token) throw new Error('No access token')
     activeAgent = agentKey
-    await client.startCall({ accessToken: data.access_token })
-  } catch (e) {
+    await client.startCall({accessToken: data.access_token})
+  } catch(e) {
     btn.disabled = false
-    btn.textContent = `📞 Talk to ${agentKey.charAt(0).toUpperCase() + agentKey.slice(1)}`
+    btn.textContent = BTN_LABELS[agentKey]
     alert('Could not connect. Please try again.')
   }
 }
 
-window.endCall = () => {
+function endCall() {
   client.stopCall()
   resetUI()
 }
