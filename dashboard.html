@@ -12,7 +12,12 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js" crossorigin></script>
-  <script src="https://unpkg.com/retell-client-js-sdk/dist/index.umd.js"></script>
+  <!-- Retell SDK loaded via dynamic import — works on file:// and Vercel -->
+  <script>
+    window._retellPromise = import('https://esm.sh/retell-client-js-sdk')
+      .then(m => { window.RetellWebClient = m.RetellWebClient; return m.RetellWebClient; })
+      .catch(e => { console.error('Retell SDK failed:', e); return null; });
+  </script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -414,11 +419,8 @@ async function startCall(agentKey) {
   const agent = AGENTS[agentKey];
   updateCallState(agentKey, 'connecting');
 
-  // Resolve the RetellWebClient constructor — handle different UMD global names
-  const RC = window.RetellWebClient
-    || (window.retellClientJsSdk && window.retellClientJsSdk.RetellWebClient)
-    || (window['retell-client-js-sdk'] && window['retell-client-js-sdk'].RetellWebClient);
-
+  // Wait for the Retell SDK dynamic import to finish
+  const RC = await window._retellPromise;
   if (!RC) {
     showCallError(agentKey, 'Retell SDK failed to load. Check your internet connection and refresh.');
     return;

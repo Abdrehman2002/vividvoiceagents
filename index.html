@@ -7,7 +7,12 @@
 <meta name="description" content="Three specialised AI voice agents for banking — FAQ Support, Sales & Lead Qualification, and Complaint Resolution. Available 24/7 in Roman Urdu."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
-<script src="https://unpkg.com/retell-client-js-sdk/dist/index.umd.js"></script>
+<!-- Retell SDK loaded via dynamic import — works on file:// and Vercel -->
+<script>
+  window._retellPromise = import('https://esm.sh/retell-client-js-sdk')
+    .then(m => { window.RetellWebClient = m.RetellWebClient; return m.RetellWebClient; })
+    .catch(e => { console.error('Retell SDK failed:', e); return null; });
+</script>
 <style>
   :root {
     --black: #020408; --deep: #050c14; --card: #08111c;
@@ -419,11 +424,7 @@ async function createWebCall(agentId) {
   return await r.json();
 }
 
-const RC = window.RetellWebClient
-  || (window.retellClientJsSdk && window.retellClientJsSdk.RetellWebClient)
-  || (window['retell-client-js-sdk'] && window['retell-client-js-sdk'].RetellWebClient)
-
-let client = RC ? new RC() : null
+let client = null
 let activeAgent = null
 
 // Event listeners are now attached fresh per call inside handleCall()
@@ -446,6 +447,7 @@ async function handleCall(agentKey) {
   if (activeAgent === agentKey) { endCall(); return; }
   if (activeAgent) { endCall(); return; }
 
+  const RC = await window._retellPromise;
   if (!RC) {
     alert('Retell SDK failed to load. Check your internet connection and refresh the page.')
     return
