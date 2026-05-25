@@ -7,7 +7,7 @@
 <meta name="description" content="Three specialised AI voice agents for banking — FAQ Support, Sales & Lead Qualification, and Complaint Resolution. Available 24/7 in Roman Urdu."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/dist/index.umd.js"></script>
+<script src="https://unpkg.com/retell-client-js-sdk/dist/index.umd.js"></script>
 <style>
   :root {
     --black: #020408; --deep: #050c14; --card: #08111c;
@@ -419,31 +419,14 @@ async function createWebCall(agentId) {
   return await r.json();
 }
 
-let client = new RetellWebClient()
+const RC = window.RetellWebClient
+  || (window.retellClientJsSdk && window.retellClientJsSdk.RetellWebClient)
+  || (window['retell-client-js-sdk'] && window['retell-client-js-sdk'].RetellWebClient)
+
+let client = RC ? new RC() : null
 let activeAgent = null
 
-client.on('call_started', () => {
-  if (!activeAgent) return
-  const a = AGENTS[activeAgent]
-  document.getElementById('banner-name').textContent = a.name
-  document.getElementById('call-banner').classList.add('visible')
-  a.wave.forEach(id => document.getElementById(id).classList.add('active'))
-  document.getElementById(a.badge).classList.add('visible')
-  const btn = document.getElementById(a.btn)
-  btn.textContent = 'End Call'
-  btn.classList.add('ending')
-})
-
-client.on('call_ended', () => resetUI())
-client.on('agent_start_talking', () => {
-  if (!activeAgent) return
-  AGENTS[activeAgent].wave.forEach(id => { document.getElementById(id).style.opacity = '1' })
-})
-client.on('agent_stop_talking', () => {
-  if (!activeAgent) return
-  AGENTS[activeAgent].wave.forEach(id => { document.getElementById(id).style.opacity = '0.4' })
-})
-client.on('error', () => resetUI())
+// Event listeners are now attached fresh per call inside handleCall()
 
 function resetUI() {
   Object.keys(AGENTS).forEach(key => {
@@ -463,6 +446,11 @@ async function handleCall(agentKey) {
   if (activeAgent === agentKey) { endCall(); return; }
   if (activeAgent) { endCall(); return; }
 
+  if (!RC) {
+    alert('Retell SDK failed to load. Check your internet connection and refresh the page.')
+    return
+  }
+
   const a   = AGENTS[agentKey]
   const btn = document.getElementById(a.btn)
   btn.disabled = true
@@ -470,13 +458,23 @@ async function handleCall(agentKey) {
 
   try {
     const data = await createWebCall(a.id)
-    if (!data.access_token) throw new Error('No access token')
+    if (!data.access_token) throw new Error(data.error || data.message || 'No access token returned')
+
+    // Fresh client each call to avoid stale listeners
+    client = new RC()
+    client.on('call_started',        () => { if (!activeAgent) return; const ag=AGENTS[activeAgent]; document.getElementById('banner-name').textContent=ag.name; document.getElementById('call-banner').classList.add('visible'); ag.wave.forEach(id=>document.getElementById(id).classList.add('active')); document.getElementById(ag.badge).classList.add('visible'); const b=document.getElementById(ag.btn); b.textContent='End Call'; b.classList.add('ending'); })
+    client.on('call_ended',          () => resetUI())
+    client.on('agent_start_talking', () => { if(activeAgent) AGENTS[activeAgent].wave.forEach(id=>{document.getElementById(id).style.opacity='1'}) })
+    client.on('agent_stop_talking',  () => { if(activeAgent) AGENTS[activeAgent].wave.forEach(id=>{document.getElementById(id).style.opacity='0.4'}) })
+    client.on('error', (err)         => { console.error('Retell error:', err); resetUI(); })
+
     activeAgent = agentKey
     await client.startCall({accessToken: data.access_token})
   } catch(e) {
+    console.error('handleCall failed:', e)
     btn.disabled = false
     btn.textContent = BTN_LABELS[agentKey]
-    alert('Could not connect. Please try again.')
+    alert('Could not connect: ' + (e.message || 'Unknown error'))
   }
 }
 

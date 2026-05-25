@@ -12,7 +12,7 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js" crossorigin></script>
-  <script src="https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/dist/index.umd.js"></script>
+  <script src="https://unpkg.com/retell-client-js-sdk/dist/index.umd.js"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -413,22 +413,46 @@ async function createWebCall(agentId) {
 async function startCall(agentKey) {
   const agent = AGENTS[agentKey];
   updateCallState(agentKey, 'connecting');
+
+  // Resolve the RetellWebClient constructor — handle different UMD global names
+  const RC = window.RetellWebClient
+    || (window.retellClientJsSdk && window.retellClientJsSdk.RetellWebClient)
+    || (window['retell-client-js-sdk'] && window['retell-client-js-sdk'].RetellWebClient);
+
+  if (!RC) {
+    showCallError(agentKey, 'Retell SDK failed to load. Check your internet connection and refresh.');
+    return;
+  }
+
   try {
     const data = await createWebCall(agent.id);
-    if (!data.access_token) throw new Error(data.error || 'No token');
+    if (!data.access_token) throw new Error(data.error || data.message || 'No access token returned');
 
-    if (!retellClient) retellClient = new RetellWebClient();
-    retellClient.on('call_started', () => { updateCallState(agentKey,'active'); startTimer(agentKey); });
+    // Always create a fresh client to avoid stale event listeners
+    retellClient = new RC();
+    retellClient.on('call_started', () => { updateCallState(agentKey, 'active'); startTimer(agentKey); });
     retellClient.on('call_ended',   () => stopCall(agentKey));
-    retellClient.on('error',        () => stopCall(agentKey));
+    retellClient.on('error',  (err) => { console.error('Retell error', err); stopCall(agentKey); });
 
-    await retellClient.startCall({accessToken: data.access_token});
-    updateCallState(agentKey, 'active');
-    startTimer(agentKey);
+    await retellClient.startCall({ accessToken: data.access_token });
   } catch(e) {
-    console.error(e);
-    updateCallState(agentKey, 'idle');
+    console.error('startCall failed:', e);
+    showCallError(agentKey, e.message || 'Connection failed. Try again.');
   }
+}
+
+function showCallError(agentKey, msg) {
+  updateCallState(agentKey, 'idle');
+  const el = document.getElementById(`call-widget-${agentKey}`);
+  if (!el) return;
+  const errDiv = document.createElement('div');
+  errDiv.style.cssText = 'font-size:12px;color:#ef4444;background:#fef2f2;border:1px solid #fecaca;border-radius:7px;padding:8px 12px;margin-top:8px;';
+  errDiv.textContent = msg;
+  // Remove any previous error
+  el.querySelectorAll('.call-err').forEach(e => e.remove());
+  errDiv.className = 'call-err';
+  el.appendChild(errDiv);
+  setTimeout(() => errDiv.remove(), 6000);
 }
 
 function stopCall(agentKey) {
