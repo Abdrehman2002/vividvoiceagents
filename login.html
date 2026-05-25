@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vivid Voice Agents — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cyan: #00d4ff;
+      --gold: #f5a623;
+      --orange: #ff6b35;
+      --dark: #0a0a0f;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --surface: #f9fafb;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #fff;
+      min-height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Left panel — decorative */
+    .left-panel {
+      width: 55%;
+      background: var(--dark);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 60px 64px;
+      overflow: hidden;
+    }
+
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 30%, rgba(0,212,255,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 80% 70%, rgba(245,166,35,0.08) 0%, transparent 70%);
+    }
+
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    .left-content { position: relative; z-index: 2; }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 64px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--cyan), #0099cc);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .brand-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-name span { color: var(--cyan); }
+
+    .left-heading {
+      font-family: 'Syne', sans-serif;
+      font-size: 46px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 20px;
+    }
+
+    .left-heading em {
+      font-style: normal;
+      background: linear-gradient(90deg, var(--cyan), #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .left-sub {
+      font-size: 16px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+      max-width: 380px;
+      margin-bottom: 48px;
+    }
+
+    .agents-preview {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .agent-chip {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      transition: border-color 0.2s;
+    }
+
+    .agent-chip:hover { border-color: rgba(255,255,255,0.15); }
+
+    .agent-chip-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-cyan { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+    .dot-gold { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+    .dot-orange { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+
+    .agent-chip-info { flex: 1; }
+
+    .agent-chip-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .agent-chip-role {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 1px;
+    }
+
+    .agent-chip-live {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #22c55e;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.2);
+      padding: 3px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+
+    /* Right panel — login form */
+    .right-panel {
+      width: 45%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 48px;
+      background: #fff;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .login-header {
+      margin-bottom: 36px;
+      text-align: center;
+    }
+
+    .login-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.8px;
+      margin-bottom: 8px;
+    }
+
+    .login-sub {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 7px;
+      letter-spacing: -0.1px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0,212,255,0.1);
+    }
+
+    .form-input.error {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+    }
+
+    .error-msg {
+      font-size: 12px;
+      color: #ef4444;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .error-msg.visible { display: block; }
+
+    .btn-login {
+      width: 100%;
+      padding: 13px 20px;
+      background: var(--dark);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      margin-top: 8px;
+      letter-spacing: -0.2px;
+    }
+
+    .btn-login:hover {
+      background: #1a1a2e;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      transform: translateY(-1px);
+    }
+
+    .btn-login:active { transform: translateY(0); }
+
+    .btn-login.loading {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .back-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--text); }
+
+    .back-link svg { width: 14px; height: 14px; }
+
+    /* Shake animation */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .shake { animation: shake 0.4s ease; }
+
+    @media (max-width: 768px) {
+      .left-panel { display: none; }
+      .right-panel { width: 100%; padding: 40px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left decorative panel -->
+  <div class="left-panel">
+    <div class="grid-bg"></div>
+    <div class="left-content">
+      <div class="brand">
+        <div class="brand-icon">🏦</div>
+        <div class="brand-name">Vivid <span>Voice</span></div>
+      </div>
+
+      <h1 class="left-heading">
+        AI Banking<br />Agents.<br />
+        <em>Built for Scale.</em>
+      </h1>
+
+      <p class="left-sub">
+        Three specialised voice agents handling FAQ support, sales, and complaint resolution — 24/7 with no wait times.
+      </p>
+
+      <div class="agents-preview">
+        <div class="agent-chip">
+          <div class="agent-chip-dot dot-cyan"></div>
+          <div class="agent-chip-info">
+            <div class="agent-chip-name">Sara — FAQ Support</div>
+            <div class="agent-chip-role">Account queries, card help, branch info</div>
+          </div>
+          <div class="agent-chip-live">Live</div>
+        </div>
+        <div class="agent-chip">
+          <div class="agent-chip-dot dot-gold"></div>
+          <div class="agent-chip-info">
+            <div class="agent-chip-name">Zara — Sales</div>
+            <div class="agent-chip-role">Loans, credit cards, investment plans</div>
+          </div>
+          <div class="agent-chip-live">Live</div>
+        </div>
+        <div class="agent-chip">
+          <div class="agent-chip-dot dot-orange"></div>
+          <div class="agent-chip-info">
+            <div class="agent-chip-name">Nadia — Complaints</div>
+            <div class="agent-chip-role">Dispute resolution, transaction issues</div>
+          </div>
+          <div class="agent-chip-live">Live</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right login panel -->
+  <div class="right-panel">
+    <div class="login-box">
+      <div class="login-header">
+        <div class="login-title">Welcome back</div>
+        <div class="login-sub">Sign in to access your voice agent dashboard</div>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label" for="username">Access Code</label>
+          <input
+            type="password"
+            id="username"
+            class="form-input"
+            placeholder="Enter access code"
+            autocomplete="current-password"
+            autofocus
+          />
+          <div class="error-msg" id="errorMsg">Incorrect access code. Please try again.</div>
+        </div>
+
+        <button type="submit" class="btn-login" id="loginBtn">
+          Sign In
+        </button>
+      </form>
+
+      <div class="divider">or</div>
+
+      <a href="index.html" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to agent showcase
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // If already authenticated, redirect
+    if (localStorage.getItem('banking_auth') === 'authenticated') {
+      window.location.href = 'dashboard.html';
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const input = document.getElementById('username');
+      const btn = document.getElementById('loginBtn');
+      const errMsg = document.getElementById('errorMsg');
+      const val = input.value.trim();
+
+      if (val === 'test') {
+        btn.textContent = 'Signing in…';
+        btn.classList.add('loading');
+        errMsg.classList.remove('visible');
+        input.classList.remove('error');
+
+        localStorage.setItem('banking_auth', 'authenticated');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 600);
+      } else {
+        input.classList.add('error');
+        errMsg.classList.add('visible');
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 400);
+        input.value = '';
+        input.focus();
+      }
+    }
+  </script>
+</body>
+</html>
