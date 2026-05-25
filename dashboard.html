@@ -384,16 +384,37 @@ async function fetchCalls(agentId) {
 }
 
 // ─── Retell calls ─────────────────────────────────────────────────
+const RETELL_KEY = 'key_52cf8f696d64009de42d4196e27c';
+
+async function createWebCall(agentId) {
+  // Try the server-side proxy first (works on Vercel)
+  // Fall back to calling Retell directly (works locally)
+  const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (!isLocal) {
+    try {
+      const r = await fetch('/api/create-web-call', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({agent_id: agentId}),
+      });
+      const d = await r.json();
+      if (d.access_token) return d;
+    } catch(e) {}
+  }
+  // Direct call to Retell (local dev / fallback)
+  const r = await fetch('https://api.retellai.com/v2/create-web-call', {
+    method: 'POST',
+    headers: {'Authorization': `Bearer ${RETELL_KEY}`, 'Content-Type':'application/json'},
+    body: JSON.stringify({agent_id: agentId}),
+  });
+  return await r.json();
+}
+
 async function startCall(agentKey) {
   const agent = AGENTS[agentKey];
   updateCallState(agentKey, 'connecting');
   try {
-    const resp = await fetch('/api/create-web-call', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({agent_id: agent.id}),
-    });
-    const data = await resp.json();
+    const data = await createWebCall(agent.id);
     if (!data.access_token) throw new Error(data.error || 'No token');
 
     if (!retellClient) retellClient = new RetellWebClient();
