@@ -7,6 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- UMD builds — work locally AND on Vercel -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/dist/index.umd.js"></script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -26,1183 +33,742 @@
       --white: #ffffff;
     }
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--surface);
-      color: var(--text);
-      min-height: 100vh;
-    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--text); min-height: 100vh; }
 
-    /* ─── Sidebar ─── */
+    /* Sidebar */
     .sidebar {
-      position: fixed;
-      top: 0; left: 0; bottom: 0;
-      width: 240px;
-      background: var(--white);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      z-index: 100;
+      position: fixed; top: 0; left: 0; bottom: 0; width: 240px;
+      background: var(--white); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; z-index: 100;
     }
-
     .sidebar-brand {
-      padding: 24px 20px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-icon {
-      width: 36px; height: 36px;
-      background: var(--dark);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-    }
-
-    .brand-text {
-      font-family: 'Syne', sans-serif;
-      font-size: 16px; font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.3px;
-    }
-
-    .brand-text span { color: var(--cyan); }
-
-    .sidebar-nav {
-      flex: 1;
-      padding: 16px 12px;
-      overflow-y: auto;
-    }
-
-    .nav-section-label {
-      font-size: 10px; font-weight: 600;
-      letter-spacing: 1px; text-transform: uppercase;
-      color: var(--muted);
-      padding: 0 8px;
-      margin-bottom: 6px; margin-top: 16px;
-    }
-
-    .nav-section-label:first-child { margin-top: 0; }
-
-    .nav-item {
+      padding: 24px 20px 20px; border-bottom: 1px solid var(--border);
       display: flex; align-items: center; gap: 10px;
-      padding: 9px 10px;
-      border-radius: 8px;
-      font-size: 13px; font-weight: 500;
-      color: var(--muted);
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-      margin-bottom: 1px;
-      border: none; background: none; width: 100%; text-align: left;
     }
-
+    .brand-icon {
+      width: 36px; height: 36px; background: var(--dark); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    .brand-text { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+    .brand-text span { color: var(--cyan); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+    .nav-section-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--muted); padding: 0 8px; margin-bottom: 6px; margin-top: 16px; display: block;
+    }
+    .nav-section-label:first-child { margin-top: 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+      border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--muted);
+      cursor: pointer; transition: background .15s, color .15s;
+      margin-bottom: 1px; border: none; background: none; width: 100%; text-align: left;
+    }
     .nav-item:hover { background: var(--surface); color: var(--text); }
-
     .nav-item.active { background: var(--dark); color: #fff; }
-
-    .nav-item-dot {
-      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-    }
-
-    .dot-cyan { background: var(--cyan); }
-    .dot-gold { background: var(--gold); }
+    .nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-cyan   { background: var(--cyan); }
+    .dot-gold   { background: var(--gold); }
     .dot-orange { background: var(--orange); }
-    .dot-grey { background: #9ca3af; }
-
-    .sidebar-footer {
-      padding: 16px 12px;
-      border-top: 1px solid var(--border);
-    }
-
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
     .logout-btn {
-      display: flex; align-items: center; gap: 8px;
-      padding: 9px 10px;
-      border-radius: 8px;
-      font-size: 13px; font-weight: 500;
-      color: var(--muted);
-      cursor: pointer;
-      background: none; border: none; width: 100%;
-      transition: background 0.15s, color 0.15s;
+      display: flex; align-items: center; gap: 8px; padding: 9px 10px;
+      border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--muted);
+      cursor: pointer; background: none; border: none; width: 100%; transition: background .15s, color .15s;
     }
-
     .logout-btn:hover { background: #fef2f2; color: #ef4444; }
 
-    /* ─── Main ─── */
-    .main {
-      margin-left: 240px;
-      min-height: 100vh;
-    }
-
-    /* ─── Top bar ─── */
+    /* Main */
+    .main { margin-left: 240px; min-height: 100vh; }
     .topbar {
-      background: var(--white);
-      border-bottom: 1px solid var(--border);
-      padding: 0 32px;
-      height: 60px;
+      background: var(--white); border-bottom: 1px solid var(--border);
+      padding: 0 32px; height: 60px;
       display: flex; align-items: center; justify-content: space-between;
       position: sticky; top: 0; z-index: 50;
     }
-
-    .topbar-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 18px; font-weight: 700;
-      color: var(--text); letter-spacing: -0.3px;
-    }
-
+    .topbar-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
     .topbar-right { display: flex; align-items: center; gap: 12px; }
-
-    .topbar-badge {
-      font-size: 11px; font-weight: 600;
-      padding: 4px 10px; border-radius: 20px;
-      text-transform: uppercase; letter-spacing: 0.5px;
-    }
-
     .badge-live {
-      background: rgba(34,197,94,0.1);
-      color: #16a34a;
-      border: 1px solid rgba(34,197,94,0.25);
+      font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      background: rgba(34,197,94,.1); color: #16a34a; border: 1px solid rgba(34,197,94,.25);
     }
-
     .back-to-home {
-      font-size: 12px; font-weight: 500; color: var(--muted);
-      text-decoration: none; padding: 6px 12px;
-      border: 1px solid var(--border); border-radius: 7px;
-      transition: border-color 0.15s, color 0.15s;
+      font-size: 12px; font-weight: 500; color: var(--muted); text-decoration: none;
+      padding: 6px 12px; border: 1px solid var(--border); border-radius: 7px;
+      transition: border-color .15s, color .15s;
     }
-
     .back-to-home:hover { border-color: var(--text); color: var(--text); }
-
-    /* ─── Content ─── */
     .content { padding: 28px 32px; }
 
-    /* ─── Overview Stats ─── */
-    .section-header {
-      font-family: 'Syne', sans-serif;
-      font-size: 13px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 1px;
-      color: var(--muted);
-      margin-bottom: 14px;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-
-    .stat-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px 20px;
-    }
-
-    .stat-label {
-      font-size: 12px; font-weight: 500; color: var(--muted);
-      margin-bottom: 6px;
-    }
-
-    .stat-value {
-      font-family: 'Syne', sans-serif;
-      font-size: 28px; font-weight: 800;
-      color: var(--text); letter-spacing: -1px;
-      line-height: 1;
-    }
-
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+    .stat-label { font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+    .stat-value { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -1px; line-height: 1; }
     .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-    /* ─── Agent Tabs ─── */
+    /* Tabs */
     .agent-tabs {
-      display: flex; gap: 4px;
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 4px;
-      margin-bottom: 24px;
-      width: fit-content;
+      display: flex; gap: 4px; background: var(--white);
+      border: 1px solid var(--border); border-radius: 10px; padding: 4px;
+      margin-bottom: 24px; width: fit-content;
     }
-
     .agent-tab {
-      display: flex; align-items: center; gap: 8px;
-      padding: 9px 20px;
-      border-radius: 7px;
-      font-size: 13px; font-weight: 600;
-      cursor: pointer; border: none; background: none;
-      color: var(--muted);
-      transition: background 0.15s, color 0.15s;
+      display: flex; align-items: center; gap: 8px; padding: 9px 20px;
+      border-radius: 7px; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none; background: none; color: var(--muted);
+      transition: background .15s, color .15s;
     }
+    .agent-tab.tab-active { background: var(--dark); color: #fff; }
+    .agent-tab:hover:not(.tab-active) { background: var(--surface); color: var(--text); }
 
-    .agent-tab.active-sara { background: var(--dark); color: #fff; }
-    .agent-tab.active-zara { background: var(--dark); color: #fff; }
-    .agent-tab.active-nadia { background: var(--dark); color: #fff; }
-    .agent-tab:hover:not(.active-sara):not(.active-zara):not(.active-nadia) {
-      background: var(--surface); color: var(--text);
-    }
-
-    /* ─── Call Widget ─── */
-    .call-section {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-      margin-bottom: 28px;
-    }
-
-    .call-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 24px;
-    }
-
-    .call-card-header {
-      display: flex; align-items: flex-start; justify-content: space-between;
-      margin-bottom: 20px;
-    }
-
-    .call-agent-name {
-      font-family: 'Syne', sans-serif;
-      font-size: 18px; font-weight: 800;
-      color: var(--text); letter-spacing: -0.5px;
-    }
-
-    .call-agent-role {
-      font-size: 12px; color: var(--muted); margin-top: 2px;
-    }
-
-    .call-avatar {
-      width: 44px; height: 44px;
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-    }
-
-    .avatar-sara { background: var(--cyan-light); }
-    .avatar-zara { background: var(--gold-light); }
+    /* Call section */
+    .call-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+    .call-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+    .call-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .call-agent-name { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+    .call-agent-role { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .call-avatar { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .avatar-sara  { background: var(--cyan-light); }
+    .avatar-zara  { background: var(--gold-light); }
     .avatar-nadia { background: var(--orange-light); }
-
-    .call-btn {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      font-family: 'Syne', sans-serif;
-      font-size: 14px; font-weight: 700;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: opacity 0.2s, transform 0.1s;
-      letter-spacing: -0.1px;
-    }
-
-    .call-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-    .call-btn:active { transform: translateY(0); }
-
-    .btn-sara { background: var(--cyan); color: var(--dark); }
-    .btn-zara { background: var(--gold); color: var(--dark); }
-    .btn-nadia { background: var(--orange); color: #fff; }
-
-    .call-btn.end-call {
-      background: #fef2f2 !important;
-      color: #ef4444 !important;
-    }
-
-    .call-btn.calling {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-
     .call-status {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 11px; font-weight: 600;
-      margin-bottom: 12px;
-      padding: 6px 10px;
-      border-radius: 7px;
-      background: var(--surface);
-      color: var(--muted);
+      display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600;
+      margin-bottom: 12px; padding: 6px 10px; border-radius: 7px;
+      background: var(--surface); color: var(--muted);
     }
-
-    .call-status.active {
-      background: rgba(34,197,94,0.08);
-      color: #16a34a;
+    .call-status.active-call { background: rgba(34,197,94,.08); color: #16a34a; }
+    .call-status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .call-status.active-call .call-status-dot { animation: pulse-dot 1.2s infinite; }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .call-timer { font-family: 'DM Mono', monospace; font-size: 13px; }
+    .call-btn {
+      width: 100%; padding: 12px; border-radius: 10px; border: none;
+      font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: opacity .2s, transform .1s; letter-spacing: -0.1px;
     }
+    .call-btn:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); }
+    .call-btn:active { transform: translateY(0); }
+    .call-btn:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-sara  { background: var(--cyan);   color: var(--dark); }
+    .btn-zara  { background: var(--gold);   color: var(--dark); }
+    .btn-nadia { background: var(--orange); color: #fff; }
+    .btn-end   { background: #fef2f2 !important; color: #ef4444 !important; }
 
-    .call-status-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: currentColor;
-    }
+    /* Charts */
+    .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 28px; }
+    .chart-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; }
+    .chart-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .chart-sub   { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+    .chart-area  { height: 200px; width: 100%; }
 
-    .call-status.active .call-status-dot {
-      animation: pulse-dot 1.2s infinite;
-    }
-
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-
-    .call-timer {
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-    }
-
-    /* ─── Charts ─── */
-    .charts-row {
-      display: grid; grid-template-columns: 2fr 1fr; gap: 20px;
-      margin-bottom: 28px;
-    }
-
-    .chart-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px 24px;
-    }
-
-    .chart-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 14px; font-weight: 700;
-      color: var(--text); margin-bottom: 4px;
-    }
-
-    .chart-sub {
-      font-size: 12px; color: var(--muted); margin-bottom: 20px;
-    }
-
-    .chart-area { height: 200px; width: 100%; }
-
-    /* ─── Calls Table ─── */
-    .calls-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      margin-bottom: 28px;
-      overflow: hidden;
-    }
-
+    /* Calls table */
+    .calls-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 28px; overflow: hidden; }
     .calls-card-header {
-      padding: 18px 24px;
-      border-bottom: 1px solid var(--border);
+      padding: 18px 24px; border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between;
     }
-
-    .calls-card-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 15px; font-weight: 700;
-      color: var(--text);
-    }
-
+    .calls-card-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); }
     .calls-count-badge {
-      font-size: 11px; font-weight: 600;
-      padding: 3px 9px; border-radius: 20px;
-      background: var(--surface);
-      color: var(--muted);
-      border: 1px solid var(--border);
+      font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+      background: var(--surface); color: var(--muted); border: 1px solid var(--border);
     }
-
     .calls-table { width: 100%; border-collapse: collapse; }
-
     .calls-table th {
-      padding: 11px 16px;
-      font-size: 11px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.5px;
-      color: var(--muted); text-align: left;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
+      padding: 11px 16px; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
+      text-align: left; background: var(--surface); border-bottom: 1px solid var(--border);
     }
-
-    .calls-table td {
-      padding: 13px 16px;
-      font-size: 13px; color: var(--text2);
-      border-bottom: 1px solid #f3f4f6;
-      vertical-align: top;
-    }
-
+    .calls-table td { padding: 13px 16px; font-size: 13px; color: var(--text2); border-bottom: 1px solid #f3f4f6; vertical-align: top; }
     .calls-table tr:last-child td { border-bottom: none; }
-
     .calls-table tr:hover td { background: #fafafa; }
-
-    .call-id-code {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px; color: var(--muted);
-      background: var(--surface);
-      padding: 2px 7px; border-radius: 5px;
-    }
-
-    .duration-badge {
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      padding: 3px 8px; border-radius: 5px;
-      background: var(--surface); color: var(--text2);
-    }
-
+    .call-id-code { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); background: var(--surface); padding: 2px 7px; border-radius: 5px; }
+    .duration-badge { font-family: 'DM Mono', monospace; font-size: 12px; padding: 3px 8px; border-radius: 5px; background: var(--surface); color: var(--text2); }
     .recording-btn {
       display: inline-flex; align-items: center; gap: 5px;
-      font-size: 12px; font-weight: 500;
-      color: var(--cyan); text-decoration: none;
-      padding: 4px 10px; border-radius: 6px;
-      background: var(--cyan-light);
-      transition: opacity 0.15s;
+      font-size: 12px; font-weight: 500; color: var(--cyan); text-decoration: none;
+      padding: 4px 10px; border-radius: 6px; background: var(--cyan-light);
     }
-
-    .recording-btn:hover { opacity: 0.75; }
-
-    .no-recording {
-      font-size: 12px; color: #d1d5db;
-    }
-
-    .transcript-preview {
-      font-size: 12px; color: var(--muted);
-      max-width: 300px;
-      white-space: nowrap; overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
+    .recording-btn:hover { opacity: .75; }
+    .no-rec { font-size: 12px; color: #d1d5db; }
+    .transcript-wrap { max-width: 280px; }
+    .transcript-preview { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .expand-btn { font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; margin-top: 2px; display: block; }
     .pca-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+    .pca-pill { font-size: 11px; font-weight: 500; padding: 2px 7px; border-radius: 12px; background: var(--surface); color: var(--text2); border: 1px solid var(--border); }
 
-    .pca-pill {
-      font-size: 11px; font-weight: 500;
-      padding: 2px 7px; border-radius: 12px;
-      background: var(--surface);
-      color: var(--text2);
-      border: 1px solid var(--border);
-    }
-
-    .expand-transcript {
-      font-size: 11px; color: var(--muted);
-      cursor: pointer; text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-
-    /* ─── Empty & Loading States ─── */
-    .empty-state {
-      text-align: center; padding: 48px 24px;
-      color: var(--muted);
-    }
-
-    .empty-icon { font-size: 32px; margin-bottom: 12px; }
-
-    .empty-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 15px; font-weight: 700; color: var(--text2);
-      margin-bottom: 6px;
-    }
-
-    .empty-sub { font-size: 13px; }
-
-    .loading-row td {
-      padding: 28px 16px;
-      text-align: center; color: var(--muted); font-size: 13px;
-    }
-
-    /* Spinner */
+    /* Empty / loading */
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+    .empty-icon  { font-size: 32px; margin-bottom: 12px; }
+    .empty-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text2); margin-bottom: 6px; }
+    .empty-sub   { font-size: 13px; }
     .spinner {
-      display: inline-block; width: 18px; height: 18px;
-      border: 2px solid var(--border);
-      border-top-color: var(--cyan);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 6px;
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid var(--border); border-top-color: var(--cyan);
+      border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px;
     }
-
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Transcript modal */
     .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 200;
-      display: flex; align-items: center; justify-content: center;
-      padding: 24px;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.2s;
+      position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200;
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
     }
-
     .modal-overlay.open { opacity: 1; pointer-events: auto; }
-
     .modal {
-      background: #fff; border-radius: 16px;
-      width: 100%; max-width: 600px;
-      max-height: 80vh;
-      display: flex; flex-direction: column;
-      overflow: hidden;
-      transform: translateY(10px); transition: transform 0.2s;
+      background: #fff; border-radius: 16px; width: 100%; max-width: 600px; max-height: 80vh;
+      display: flex; flex-direction: column; overflow: hidden;
+      transform: translateY(10px); transition: transform .2s;
     }
-
     .modal-overlay.open .modal { transform: translateY(0); }
-
-    .modal-header {
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-
-    .modal-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 16px; font-weight: 700; color: var(--text);
-    }
-
-    .modal-close {
-      width: 30px; height: 30px; border-radius: 7px;
-      background: var(--surface); border: none;
-      cursor: pointer; font-size: 16px; color: var(--muted);
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .modal-title  { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); }
+    .modal-close  {
+      width: 30px; height: 30px; border-radius: 7px; background: var(--surface);
+      border: none; cursor: pointer; font-size: 16px; color: var(--muted);
       display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s;
     }
-
     .modal-close:hover { background: var(--border); }
+    .modal-body { padding: 20px 24px; overflow-y: auto; font-size: 13px; color: var(--text2); line-height: 1.65; white-space: pre-wrap; font-family: 'DM Mono', monospace; }
 
-    .modal-body {
-      padding: 20px 24px;
-      overflow-y: auto;
-      font-size: 13px; color: var(--text2); line-height: 1.65;
-      white-space: pre-wrap;
-      font-family: 'DM Mono', monospace;
-    }
+    /* About card */
+    .about-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; }
+    .about-name  { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .about-text  { font-size: 13px; color: var(--muted); line-height: 1.65; }
   </style>
 </head>
 <body>
 
-  <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-      <div class="brand-icon">🏦</div>
-      <div class="brand-text">Vivid <span>Voice</span></div>
+<!-- Auth guard — runs immediately before anything renders -->
+<script>
+  if (localStorage.getItem('banking_auth') !== 'authenticated') {
+    window.location.replace('login.html');
+  }
+</script>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">🏦</div>
+    <div class="brand-text">Vivid <span>Voice</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <span class="nav-section-label">Overview</span>
+    <button class="nav-item active" id="nav-overview" onclick="switchTab('overview')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      Overview
+    </button>
+    <span class="nav-section-label">Agents</span>
+    <button class="nav-item" id="nav-sara"  onclick="switchTab('sara')">
+      <div class="nav-dot dot-cyan"></div> Sara — FAQ Support
+    </button>
+    <button class="nav-item" id="nav-zara"  onclick="switchTab('zara')">
+      <div class="nav-dot dot-gold"></div> Zara — Sales
+    </button>
+    <button class="nav-item" id="nav-nadia" onclick="switchTab('nadia')">
+      <div class="nav-dot dot-orange"></div> Nadia — Complaints
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="logout-btn" onclick="logout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      Sign out
+    </button>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-title" id="topbar-title">Banking Voice Agents</div>
+    <div class="topbar-right">
+      <span class="badge-live">● Live</span>
+      <a href="index.html" class="back-to-home">← Home</a>
     </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Overview</div>
-      <button class="nav-item active" onclick="switchTab('sara')" id="nav-overview">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
-        Overview
-      </button>
-
-      <div class="nav-section-label">Agents</div>
-      <button class="nav-item" onclick="switchTab('sara')" id="nav-sara">
-        <div class="nav-item-dot dot-cyan"></div>
-        Sara — FAQ Support
-      </button>
-      <button class="nav-item" onclick="switchTab('zara')" id="nav-zara">
-        <div class="nav-item-dot dot-gold"></div>
-        Zara — Sales
-      </button>
-      <button class="nav-item" onclick="switchTab('nadia')" id="nav-nadia">
-        <div class="nav-item-dot dot-orange"></div>
-        Nadia — Complaints
-      </button>
-    </nav>
-    <div class="sidebar-footer">
-      <button class="logout-btn" onclick="logout()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
-        </svg>
-        Sign out
-      </button>
-    </div>
-  </aside>
-
-  <!-- Main -->
-  <main class="main">
-    <!-- Topbar -->
-    <header class="topbar">
-      <div class="topbar-title" id="topbar-title">Banking Voice Agents</div>
-      <div class="topbar-right">
-        <span class="topbar-badge badge-live">● Live</span>
-        <a href="index.html" class="back-to-home">← Home</a>
-      </div>
-    </header>
-
-    <!-- Content -->
-    <div class="content" id="main-content">
-      <!-- Loading placeholder -->
-      <div id="loading-view" style="text-align:center;padding:80px 24px;color:#6b7280;font-size:14px;">
-        <span class="spinner"></span> Loading dashboard…
-      </div>
-    </div>
-  </main>
-
-  <!-- Transcript Modal -->
-  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">Call Transcript</div>
-        <button class="modal-close" onclick="closeModalDirect()">✕</button>
-      </div>
-      <div class="modal-body" id="modalBody"></div>
+  </header>
+  <div class="content" id="app-root">
+    <div style="padding:60px;text-align:center;color:#9ca3af;font-size:14px;">
+      <span class="spinner"></span> Loading…
     </div>
   </div>
+</main>
 
-  <!-- React + Recharts via CDN -->
-  <script type="importmap">
-  {
-    "imports": {
-      "react":        "https://esm.sh/react@18",
-      "react-dom":    "https://esm.sh/react-dom@18",
-      "react-dom/client": "https://esm.sh/react-dom@18/client",
-      "recharts":     "https://esm.sh/recharts@2"
+<!-- Transcript Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Call Transcript</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ─── Config ───────────────────────────────────────────────────────
+const AGENTS = {
+  sara:  { id:'agent_fa9b348a78254f61b2aecc7936', name:'Sara',  role:'FAQ Support',  emoji:'🏦', color:'#00c8f0', light:'#e0f9ff', avatarClass:'avatar-sara',  btnClass:'btn-sara'  },
+  zara:  { id:'agent_318393fc9565f28c8b31fc2ae3', name:'Zara',  role:'Sales',        emoji:'📈', color:'#f5a623', light:'#fff8e6', avatarClass:'avatar-zara',  btnClass:'btn-zara'  },
+  nadia: { id:'agent_687ccd039e4d348dd7829b71e0', name:'Nadia', role:'Complaints',   emoji:'🛡️', color:'#ff6b35', light:'#fff2ee', avatarClass:'avatar-nadia', btnClass:'btn-nadia' },
+};
+
+const ABOUT = {
+  sara:  'Sara handles inbound FAQ support for HBL customers. She answers account queries, explains card features, provides branch info, and guides customers through common banking processes — fluently in both English and Urdu.',
+  zara:  'Zara is HBL\'s AI sales specialist. She pitches loans, credit cards, and investment products, qualifies leads, and books follow-up appointments for relationship managers.',
+  nadia: 'Nadia manages customer complaints and dispute resolution. She handles transaction errors, blocked cards, failed transfers, and escalates complex issues with empathy and full context retention.',
+};
+
+// ─── State ────────────────────────────────────────────────────────
+let currentTab = 'overview';
+let callState  = {};   // { sara:'idle'|'connecting'|'active', ... }
+let callTimers = {};   // { sara: interval }
+let callElapsed = {};  // { sara: seconds }
+let retellClient = null;
+
+Object.keys(AGENTS).forEach(k => { callState[k] = 'idle'; callElapsed[k] = 0; });
+
+// ─── Helpers ──────────────────────────────────────────────────────
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+       + ' ' + d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtDuration(sec) {
+  if (!sec) return '—';
+  const m = Math.floor(sec/60), s = sec%60;
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
+function fmtTimer(sec) {
+  return String(Math.floor(sec/60)).padStart(2,'0') + ':' + String(sec%60).padStart(2,'0');
+}
+function avgDuration(calls) {
+  const v = calls.filter(c=>c.duration_seconds);
+  return v.length ? Math.round(v.reduce((s,c)=>s+c.duration_seconds,0)/v.length) : 0;
+}
+function groupByDay(calls) {
+  const map = {};
+  calls.forEach(c => {
+    if (!c.started_at) return;
+    const key = new Date(c.started_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    map[key] = (map[key]||0) + 1;
+  });
+  return Object.entries(map).slice(-14).map(([date,count])=>({date,count}));
+}
+function durationBuckets(calls) {
+  const b = [{label:'<30s',count:0},{label:'30-60s',count:0},{label:'1-2m',count:0},{label:'2-5m',count:0},{label:'>5m',count:0}];
+  calls.forEach(c => {
+    const d = c.duration_seconds||0;
+    if(d<30)b[0].count++;
+    else if(d<60)b[1].count++;
+    else if(d<120)b[2].count++;
+    else if(d<300)b[3].count++;
+    else b[4].count++;
+  });
+  return b;
+}
+
+// ─── API ──────────────────────────────────────────────────────────
+const cache = {};
+async function fetchCalls(agentId) {
+  if (cache[agentId]) return cache[agentId];
+  try {
+    const r = await fetch(`/api/calls?agentId=${agentId}`);
+    const d = await r.json();
+    const arr = d.calls || [];
+    cache[agentId] = arr;
+    return arr;
+  } catch(e) { return []; }
+}
+
+// ─── Retell calls ─────────────────────────────────────────────────
+async function startCall(agentKey) {
+  const agent = AGENTS[agentKey];
+  updateCallState(agentKey, 'connecting');
+  try {
+    const resp = await fetch('/api/create-web-call', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({agent_id: agent.id}),
+    });
+    const data = await resp.json();
+    if (!data.access_token) throw new Error(data.error || 'No token');
+
+    if (!retellClient) retellClient = new RetellWebClient();
+    retellClient.on('call_started', () => { updateCallState(agentKey,'active'); startTimer(agentKey); });
+    retellClient.on('call_ended',   () => stopCall(agentKey));
+    retellClient.on('error',        () => stopCall(agentKey));
+
+    await retellClient.startCall({accessToken: data.access_token});
+    updateCallState(agentKey, 'active');
+    startTimer(agentKey);
+  } catch(e) {
+    console.error(e);
+    updateCallState(agentKey, 'idle');
+  }
+}
+
+function stopCall(agentKey) {
+  if (retellClient) { try { retellClient.stopCall(); } catch(e) {} }
+  clearInterval(callTimers[agentKey]);
+  callElapsed[agentKey] = 0;
+  updateCallState(agentKey, 'idle');
+}
+
+function startTimer(agentKey) {
+  callElapsed[agentKey] = 0;
+  callTimers[agentKey] = setInterval(() => {
+    callElapsed[agentKey]++;
+    const el = document.getElementById(`timer-${agentKey}`);
+    if (el) el.textContent = fmtTimer(callElapsed[agentKey]);
+  }, 1000);
+}
+
+function updateCallState(agentKey, state) {
+  callState[agentKey] = state;
+  renderCallWidget(agentKey);
+}
+
+// ─── Render call widget ───────────────────────────────────────────
+function renderCallWidget(agentKey) {
+  const el = document.getElementById(`call-widget-${agentKey}`);
+  if (!el) return;
+  const agent  = AGENTS[agentKey];
+  const state  = callState[agentKey];
+  const active = state === 'active';
+  const connecting = state === 'connecting';
+
+  el.innerHTML = `
+    <div class="call-card-header">
+      <div>
+        <div class="call-agent-name">${agent.name}</div>
+        <div class="call-agent-role">${agent.role}</div>
+      </div>
+      <div class="call-avatar ${agent.avatarClass}">${agent.emoji}</div>
+    </div>
+    <div class="call-status ${active ? 'active-call' : ''}">
+      <div class="call-status-dot"></div>
+      ${active
+        ? `Live — <span class="call-timer" id="timer-${agentKey}">${fmtTimer(callElapsed[agentKey])}</span>`
+        : connecting ? 'Connecting…' : 'Ready to call'}
+    </div>
+    <button
+      class="call-btn ${agent.btnClass} ${active ? 'btn-end' : ''}"
+      onclick="${active ? `stopCall('${agentKey}')` : `startCall('${agentKey}')`}"
+      ${connecting ? 'disabled' : ''}
+    >
+      ${active ? '⏹ End Call' : connecting ? '⏳ Connecting…' : `📞 Talk to ${agent.name}`}
+    </button>
+  `;
+}
+
+// ─── Modal ────────────────────────────────────────────────────────
+function openTranscript(text) {
+  document.getElementById('modalBody').textContent = text || '(No transcript)';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalOutside(e) { if (e.target.id==='modalOverlay') closeModal(); }
+
+// ─── Nav ──────────────────────────────────────────────────────────
+const TAB_TITLES = {
+  overview: 'Banking Voice Agents',
+  sara:  'Sara — FAQ Support',
+  zara:  'Zara — Sales',
+  nadia: 'Nadia — Complaints',
+};
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('topbar-title').textContent = TAB_TITLES[tab];
+  ['overview','sara','zara','nadia'].forEach(id => {
+    const el = document.getElementById(`nav-${id}`);
+    if (el) el.classList.toggle('active', id === tab);
+  });
+  renderTab(tab);
+}
+
+function logout() {
+  localStorage.removeItem('banking_auth');
+  window.location.href = 'login.html';
+}
+
+// ─── Render helpers ───────────────────────────────────────────────
+function statsHTML(calls) {
+  const total    = calls.length;
+  const avg      = avgDuration(calls);
+  const withRec  = calls.filter(c=>c.recording_url).length;
+  const today    = calls.filter(c => {
+    if (!c.started_at) return false;
+    return new Date(c.started_at).toDateString() === new Date().toDateString();
+  }).length;
+  return `
+    <div class="stats-grid">
+      ${[
+        {label:'Total Calls',   value:total,              sub:'All time'},
+        {label:'Avg Duration',  value:fmtDuration(avg),   sub:'Per call'},
+        {label:'Today',         value:today,              sub:'Calls today'},
+        {label:'Recordings',    value:withRec,            sub:`${total?Math.round(withRec/total*100):0}% captured`},
+      ].map(s=>`
+        <div class="stat-card">
+          <div class="stat-label">${s.label}</div>
+          <div class="stat-value">${s.value}</div>
+          <div class="stat-sub">${s.sub}</div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+function chartsHTML(agentKey) {
+  return `
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Call Volume</div>
+        <div class="chart-sub">Last 14 days</div>
+        <div class="chart-area" id="chart-area-${agentKey}"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Duration Distribution</div>
+        <div class="chart-sub">Call length buckets</div>
+        <div class="chart-area" id="chart-dur-${agentKey}"></div>
+      </div>
+    </div>`;
+}
+
+function callsTableHTML(calls, agentKey) {
+  if (!calls.length) {
+    return `<div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">No calls yet</div>
+      <div class="empty-sub">Make a call above to see it appear here</div>
+    </div>`;
+  }
+  const rows = calls.map(c => {
+    const pca = c.analysis && Object.keys(c.analysis).length
+      ? Object.entries(c.analysis).slice(0,4).map(([k,v])=>`<span class="pca-pill" title="${k}: ${v}">${k}: ${String(v).slice(0,25)}</span>`).join('')
+      : '<span class="no-rec">—</span>';
+    const rec = c.recording_url
+      ? `<a class="recording-btn" href="${c.recording_url}" target="_blank" rel="noopener">▶ Play</a>`
+      : `<span class="no-rec">N/A</span>`;
+    const trans = c.transcript
+      ? `<div class="transcript-wrap">
+           <div class="transcript-preview">${c.transcript}</div>
+           <span class="expand-btn" onclick="openTranscript(${JSON.stringify(c.transcript)})">View full</span>
+         </div>`
+      : '<span class="no-rec">—</span>';
+    return `<tr>
+      <td><span class="call-id-code">${c.call_id.slice(0,14)}…</span></td>
+      <td>${fmtDate(c.started_at)}</td>
+      <td><span class="duration-badge">${fmtDuration(c.duration_seconds)}</span></td>
+      <td>${rec}</td>
+      <td>${trans}</td>
+      <td><div class="pca-pills">${pca}</div></td>
+    </tr>`;
+  });
+  return `<div style="overflow-x:auto">
+    <table class="calls-table">
+      <thead><tr>${['Call ID','Started','Duration','Recording','Transcript','Analysis'].map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+      <tbody>${rows.join('')}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderCharts(agentKey, calls) {
+  const { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = Recharts;
+  const agent = AGENTS[agentKey];
+  const daily = groupByDay(calls);
+  const buckets = durationBuckets(calls);
+
+  // Area chart
+  const areaEl = document.getElementById(`chart-area-${agentKey}`);
+  if (areaEl) {
+    if (daily.length) {
+      const areaChart = React.createElement(ResponsiveContainer, {width:'100%',height:'100%'},
+        React.createElement(AreaChart, {data:daily},
+          React.createElement('defs', null,
+            React.createElement('linearGradient', {id:`ga-${agentKey}`,x1:'0',y1:'0',x2:'0',y2:'1'},
+              React.createElement('stop',{offset:'5%',stopColor:agent.color,stopOpacity:0.2}),
+              React.createElement('stop',{offset:'95%',stopColor:agent.color,stopOpacity:0})
+            )
+          ),
+          React.createElement(CartesianGrid,{stroke:'#f3f4f6',vertical:false}),
+          React.createElement(XAxis,{dataKey:'date',tick:{fontSize:11,fill:'#9ca3af'},axisLine:false,tickLine:false}),
+          React.createElement(YAxis,{tick:{fontSize:11,fill:'#9ca3af'},axisLine:false,tickLine:false,width:28,allowDecimals:false}),
+          React.createElement(Tooltip,{contentStyle:{borderRadius:'8px',border:'1px solid #e5e7eb',fontSize:12}}),
+          React.createElement(Area,{type:'monotone',dataKey:'count',stroke:agent.color,strokeWidth:2,fill:`url(#ga-${agentKey})`})
+        )
+      );
+      ReactDOM.createRoot(areaEl).render(areaChart);
+    } else {
+      areaEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#9ca3af;font-size:13px">No data yet</div>`;
     }
   }
-  </script>
 
-  <!-- Retell Web SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/dist/index.umd.js"></script>
+  // Bar chart
+  const durEl = document.getElementById(`chart-dur-${agentKey}`);
+  if (durEl) {
+    const barChart = React.createElement(ResponsiveContainer, {width:'100%',height:'100%'},
+      React.createElement(BarChart, {data:buckets,barSize:28},
+        React.createElement(CartesianGrid,{stroke:'#f3f4f6',vertical:false}),
+        React.createElement(XAxis,{dataKey:'label',tick:{fontSize:11,fill:'#9ca3af'},axisLine:false,tickLine:false}),
+        React.createElement(YAxis,{tick:{fontSize:11,fill:'#9ca3af'},axisLine:false,tickLine:false,width:24,allowDecimals:false}),
+        React.createElement(Tooltip,{contentStyle:{borderRadius:'8px',border:'1px solid #e5e7eb',fontSize:12}}),
+        React.createElement(Bar,{dataKey:'count',fill:agent.color,radius:[4,4,0,0]})
+      )
+    );
+    ReactDOM.createRoot(durEl).render(barChart);
+  }
+}
 
-  <script type="module">
-    import React, { useState, useEffect, useRef, useCallback } from 'react';
-    import { createRoot } from 'react-dom/client';
-    import {
-      AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-      XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
-    } from 'recharts';
+// ─── Tab renderers ────────────────────────────────────────────────
+async function renderAgentTab(agentKey) {
+  const agent = AGENTS[agentKey];
+  const root = document.getElementById('app-root');
 
-    // ──────────────────────────────────────────
-    // Config
-    // ──────────────────────────────────────────
-    const AGENTS = {
-      sara:  { id: 'agent_fa9b348a78254f61b2aecc7936', name: 'Sara', role: 'FAQ Support',  emoji: '🏦', color: '#00c8f0', light: '#e0f9ff', avatarClass: 'avatar-sara', btnClass: 'btn-sara', dotClass: 'dot-cyan' },
-      zara:  { id: 'agent_318393fc9565f28c8b31fc2ae3', name: 'Zara', role: 'Sales',         emoji: '📈', color: '#f5a623', light: '#fff8e6', avatarClass: 'avatar-zara', btnClass: 'btn-zara', dotClass: 'dot-gold' },
-      nadia: { id: 'agent_687ccd039e4d348dd7829b71e0', name: 'Nadia', role: 'Complaints',   emoji: '🛡️', color: '#ff6b35', light: '#fff2ee', avatarClass: 'avatar-nadia', btnClass: 'btn-nadia', dotClass: 'dot-orange' },
-    };
+  root.innerHTML = `
+    <div class="call-section">
+      <div class="call-card" id="call-widget-${agentKey}">
+        <div style="text-align:center;padding:32px;color:#9ca3af;font-size:13px"><span class="spinner"></span> Loading…</div>
+      </div>
+      <div class="about-card">
+        <div class="about-name">About ${agent.name}</div>
+        <div class="about-text">${ABOUT[agentKey]}</div>
+      </div>
+    </div>
+    <div id="stats-${agentKey}"><div style="padding:20px 0;color:#9ca3af;font-size:13px"><span class="spinner"></span> Loading calls…</div></div>
+    ${chartsHTML(agentKey)}
+    <div class="calls-card">
+      <div class="calls-card-header">
+        <div class="calls-card-title">Call History</div>
+        <div class="calls-count-badge" id="count-badge-${agentKey}">…</div>
+      </div>
+      <div id="calls-body-${agentKey}"><div style="padding:32px;text-align:center;color:#9ca3af;font-size:13px"><span class="spinner"></span></div></div>
+    </div>
+  `;
 
-    const API_BASE = '';
+  renderCallWidget(agentKey);
 
-    // ──────────────────────────────────────────
-    // Helpers
-    // ──────────────────────────────────────────
-    function fmtDate(ts) {
-      if (!ts) return '—';
-      const d = new Date(ts);
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-        + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    }
+  const calls = await fetchCalls(agent.id);
 
-    function fmtDuration(sec) {
-      if (!sec) return '—';
-      const m = Math.floor(sec / 60);
-      const s = sec % 60;
-      return m > 0 ? `${m}m ${s}s` : `${s}s`;
-    }
+  document.getElementById(`stats-${agentKey}`).innerHTML = statsHTML(calls);
+  document.getElementById(`count-badge-${agentKey}`).textContent = `${calls.length} calls`;
+  document.getElementById(`calls-body-${agentKey}`).innerHTML = callsTableHTML(calls, agentKey);
+  renderCharts(agentKey, calls);
+}
 
-    function fmtTimer(sec) {
-      const m = Math.floor(sec / 60).toString().padStart(2, '0');
-      const s = (sec % 60).toString().padStart(2, '0');
-      return `${m}:${s}`;
-    }
+async function renderOverview() {
+  const root = document.getElementById('app-root');
 
-    function groupByDay(calls) {
-      const map = {};
-      calls.forEach(c => {
-        if (!c.started_at) return;
-        const d = new Date(c.started_at);
-        const key = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        map[key] = (map[key] || 0) + 1;
-      });
-      return Object.entries(map).slice(-14).map(([date, count]) => ({ date, count }));
-    }
+  root.innerHTML = `
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)" id="overview-stats">
+      ${Object.values(AGENTS).map(a=>`
+        <div class="stat-card" style="border-top:3px solid ${a.color}">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:10px;height:10px;border-radius:50%;background:${a.color}"></div>
+            <div style="font-size:12px;font-weight:600;color:#6b7280">${a.name} — ${a.role}</div>
+          </div>
+          <div class="stat-value" id="ov-count-${a.name.toLowerCase()}"><span class="spinner"></span></div>
+          <div class="stat-sub" id="ov-avg-${a.name.toLowerCase()}">Loading…</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Combined Call Volume</div>
+        <div class="chart-sub">All agents — last 14 days</div>
+        <div class="chart-area" id="ov-area"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Distribution</div>
+        <div class="chart-sub">Calls per agent</div>
+        <div class="chart-area" id="ov-pie"></div>
+      </div>
+    </div>
+  `;
 
-    function avgDuration(calls) {
-      const valid = calls.filter(c => c.duration_seconds);
-      if (!valid.length) return 0;
-      return Math.round(valid.reduce((s, c) => s + c.duration_seconds, 0) / valid.length);
-    }
+  const results = await Promise.all(
+    Object.entries(AGENTS).map(([k,a]) => fetchCalls(a.id).then(calls => ({k, a, calls})))
+  );
 
-    // ──────────────────────────────────────────
-    // Retell call helpers
-    // ──────────────────────────────────────────
-    let retellClient = null;
+  results.forEach(({k, a, calls}) => {
+    const nameKey = a.name.toLowerCase();
+    document.getElementById(`ov-count-${nameKey}`).textContent = calls.length;
+    document.getElementById(`ov-avg-${nameKey}`).textContent   = `Avg ${fmtDuration(avgDuration(calls))} per call`;
+  });
 
-    async function startCall(agentId, onStateChange) {
-      try {
-        onStateChange('connecting');
-        const resp = await fetch(`${API_BASE}/api/create-web-call`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ agent_id: agentId }),
-        });
-        const data = await resp.json();
-        if (!data.access_token) throw new Error(data.error || 'No access token');
+  // Combined area chart
+  const combined = {};
+  results.forEach(({calls}) => {
+    calls.forEach(c => {
+      if (!c.started_at) return;
+      const key = new Date(c.started_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      combined[key] = (combined[key]||0)+1;
+    });
+  });
+  const combinedData = Object.entries(combined).slice(-14).map(([date,count])=>({date,count}));
+  const totalAll = results.reduce((s,{calls})=>s+calls.length,0);
 
-        if (!retellClient) retellClient = new RetellWebClient();
+  const { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } = Recharts;
 
-        retellClient.on('call_started', () => onStateChange('active'));
-        retellClient.on('call_ended', () => onStateChange('idle'));
-        retellClient.on('error', () => onStateChange('idle'));
-
-        await retellClient.startCall({ accessToken: data.access_token });
-        onStateChange('active');
-      } catch (e) {
-        console.error(e);
-        onStateChange('idle');
-      }
-    }
-
-    async function endCall(onStateChange) {
-      if (retellClient) {
-        try { retellClient.stopCall(); } catch(e) {}
-      }
-      onStateChange('idle');
-    }
-
-    // ──────────────────────────────────────────
-    // CallWidget component
-    // ──────────────────────────────────────────
-    function CallWidget({ agent }) {
-      const [callState, setCallState] = useState('idle'); // idle | connecting | active
-      const [elapsed, setElapsed] = useState(0);
-      const timerRef = useRef(null);
-
-      useEffect(() => {
-        if (callState === 'active') {
-          setElapsed(0);
-          timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
-        } else {
-          clearInterval(timerRef.current);
-        }
-        return () => clearInterval(timerRef.current);
-      }, [callState]);
-
-      const handleToggle = () => {
-        if (callState === 'idle') {
-          startCall(agent.id, setCallState);
-        } else if (callState === 'active') {
-          endCall(setCallState);
-        }
-      };
-
-      return React.createElement('div', { className: 'call-card' },
-        React.createElement('div', { className: 'call-card-header' },
-          React.createElement('div', null,
-            React.createElement('div', { className: 'call-agent-name' }, agent.name),
-            React.createElement('div', { className: 'call-agent-role' }, agent.role),
-          ),
-          React.createElement('div', { className: `call-avatar ${agent.avatarClass}` }, agent.emoji),
-        ),
-        React.createElement('div', { className: `call-status ${callState === 'active' ? 'active' : ''}` },
-          React.createElement('div', { className: 'call-status-dot' }),
-          callState === 'idle' ? 'Ready to call'
-            : callState === 'connecting' ? 'Connecting…'
-            : React.createElement('span', null,
-                'Live — ',
-                React.createElement('span', { className: 'call-timer' }, fmtTimer(elapsed))
+  const areaEl = document.getElementById('ov-area');
+  if (areaEl) {
+    if (combinedData.length) {
+      ReactDOM.createRoot(areaEl).render(
+        React.createElement(ResponsiveContainer,{width:'100%',height:'100%'},
+          React.createElement(AreaChart,{data:combinedData},
+            React.createElement('defs',null,
+              React.createElement('linearGradient',{id:'ov-grad',x1:'0',y1:'0',x2:'0',y2:'1'},
+                React.createElement('stop',{offset:'5%',stopColor:'#00c8f0',stopOpacity:0.2}),
+                React.createElement('stop',{offset:'95%',stopColor:'#00c8f0',stopOpacity:0})
               )
-        ),
-        React.createElement('button', {
-          className: `call-btn ${agent.btnClass} ${callState === 'active' ? 'end-call' : ''} ${callState === 'connecting' ? 'calling' : ''}`,
-          onClick: handleToggle,
-          disabled: callState === 'connecting',
-        },
-          callState === 'idle'
-            ? React.createElement(React.Fragment, null, '📞 Talk to ', agent.name)
-            : callState === 'connecting'
-            ? React.createElement(React.Fragment, null, '⏳ Connecting…')
-            : React.createElement(React.Fragment, null, '⏹ End Call')
-        )
-      );
-    }
-
-    // ──────────────────────────────────────────
-    // StatsCards
-    // ──────────────────────────────────────────
-    function StatsCards({ calls, agent }) {
-      const total = calls.length;
-      const avg = avgDuration(calls);
-      const withRec = calls.filter(c => c.recording_url).length;
-      const today = calls.filter(c => {
-        if (!c.started_at) return false;
-        const d = new Date(c.started_at);
-        const now = new Date();
-        return d.toDateString() === now.toDateString();
-      }).length;
-
-      return React.createElement('div', { className: 'stats-grid' },
-        ...[
-          { label: 'Total Calls', value: total, sub: 'All time' },
-          { label: 'Avg Duration', value: fmtDuration(avg), sub: 'Per call' },
-          { label: 'Today', value: today, sub: 'Calls today' },
-          { label: 'Recordings', value: withRec, sub: `${total ? Math.round(withRec/total*100) : 0}% captured` },
-        ].map(s => React.createElement('div', { key: s.label, className: 'stat-card' },
-          React.createElement('div', { className: 'stat-label' }, s.label),
-          React.createElement('div', { className: 'stat-value' }, s.value),
-          React.createElement('div', { className: 'stat-sub' }, s.sub),
-        ))
-      );
-    }
-
-    // ──────────────────────────────────────────
-    // Charts
-    // ──────────────────────────────────────────
-    function Charts({ calls, agent }) {
-      const daily = groupByDay(calls);
-
-      // Duration distribution buckets
-      const buckets = [
-        { label: '<30s', count: 0 }, { label: '30-60s', count: 0 },
-        { label: '1-2m', count: 0 }, { label: '2-5m', count: 0 }, { label: '>5m', count: 0 },
-      ];
-      calls.forEach(c => {
-        const d = c.duration_seconds || 0;
-        if (d < 30) buckets[0].count++;
-        else if (d < 60) buckets[1].count++;
-        else if (d < 120) buckets[2].count++;
-        else if (d < 300) buckets[3].count++;
-        else buckets[4].count++;
-      });
-
-      return React.createElement('div', { className: 'charts-row' },
-        // Area chart
-        React.createElement('div', { className: 'chart-card' },
-          React.createElement('div', { className: 'chart-title' }, 'Call Volume'),
-          React.createElement('div', { className: 'chart-sub' }, 'Last 14 days'),
-          React.createElement('div', { className: 'chart-area' },
-            daily.length > 0
-              ? React.createElement(ResponsiveContainer, { width: '100%', height: '100%' },
-                  React.createElement(AreaChart, { data: daily },
-                    React.createElement('defs', null,
-                      React.createElement('linearGradient', { id: `grad-${agent.name}`, x1: '0', y1: '0', x2: '0', y2: '1' },
-                        React.createElement('stop', { offset: '5%', stopColor: agent.color, stopOpacity: 0.2 }),
-                        React.createElement('stop', { offset: '95%', stopColor: agent.color, stopOpacity: 0 }),
-                      )
-                    ),
-                    React.createElement(CartesianGrid, { stroke: '#f3f4f6', vertical: false }),
-                    React.createElement(XAxis, { dataKey: 'date', tick: { fontSize: 11, fill: '#9ca3af' }, axisLine: false, tickLine: false }),
-                    React.createElement(YAxis, { tick: { fontSize: 11, fill: '#9ca3af' }, axisLine: false, tickLine: false, width: 30 }),
-                    React.createElement(Tooltip, {
-                      contentStyle: { borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: 12 },
-                    }),
-                    React.createElement(Area, {
-                      type: 'monotone', dataKey: 'count', stroke: agent.color,
-                      strokeWidth: 2, fill: `url(#grad-${agent.name})`,
-                    })
-                  )
-                )
-              : React.createElement('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af', fontSize: 13 } }, 'No data yet')
-          )
-        ),
-
-        // Bar chart — duration dist
-        React.createElement('div', { className: 'chart-card' },
-          React.createElement('div', { className: 'chart-title' }, 'Duration Distribution'),
-          React.createElement('div', { className: 'chart-sub' }, 'Call length buckets'),
-          React.createElement('div', { className: 'chart-area' },
-            React.createElement(ResponsiveContainer, { width: '100%', height: '100%' },
-              React.createElement(BarChart, { data: buckets, barSize: 28 },
-                React.createElement(CartesianGrid, { stroke: '#f3f4f6', vertical: false }),
-                React.createElement(XAxis, { dataKey: 'label', tick: { fontSize: 11, fill: '#9ca3af' }, axisLine: false, tickLine: false }),
-                React.createElement(YAxis, { tick: { fontSize: 11, fill: '#9ca3af' }, axisLine: false, tickLine: false, width: 24, allowDecimals: false }),
-                React.createElement(Tooltip, {
-                  contentStyle: { borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: 12 },
-                }),
-                React.createElement(Bar, { dataKey: 'count', fill: agent.color, radius: [4,4,0,0] })
-              )
-            )
+            ),
+            React.createElement(CartesianGrid,{stroke:'#f3f4f6',vertical:false}),
+            React.createElement(XAxis,{dataKey:'date',tick:{fontSize:11,fill:'#9ca3af'},axisLine:false,tickLine:false}),
+            React.createElement(YAxis,{tick:{fontSize:11,fill:'#9ca3af'},axisLine:false,tickLine:false,width:28,allowDecimals:false}),
+            React.createElement(Tooltip,{contentStyle:{borderRadius:'8px',border:'1px solid #e5e7eb',fontSize:12}}),
+            React.createElement(Area,{type:'monotone',dataKey:'count',stroke:'#00c8f0',strokeWidth:2,fill:'url(#ov-grad)'})
           )
         )
       );
+    } else {
+      areaEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#9ca3af;font-size:13px">No data yet</div>`;
     }
+  }
 
-    // ──────────────────────────────────────────
-    // CallsTable
-    // ──────────────────────────────────────────
-    function CallsTable({ calls, loading }) {
-      function openTranscript(text) {
-        document.getElementById('modalBody').textContent = text || '(No transcript available)';
-        document.getElementById('modalOverlay').classList.add('open');
-      }
-
-      function renderPCA(analysis) {
-        if (!analysis || !Object.keys(analysis).length) return React.createElement('span', { style: { color: '#d1d5db', fontSize: 12 } }, '—');
-        return React.createElement('div', { className: 'pca-pills' },
-          ...Object.entries(analysis).slice(0, 4).map(([k, v]) =>
-            React.createElement('span', { key: k, className: 'pca-pill', title: `${k}: ${v}` },
-              `${k}: ${String(v).slice(0, 30)}`
-            )
+  const pieEl = document.getElementById('ov-pie');
+  if (pieEl) {
+    const pieData = results.map(({a,calls})=>({name:a.name,value:calls.length,color:a.color}));
+    if (totalAll > 0) {
+      ReactDOM.createRoot(pieEl).render(
+        React.createElement(ResponsiveContainer,{width:'100%',height:'100%'},
+          React.createElement(PieChart,null,
+            React.createElement(Pie,{data:pieData,dataKey:'value',cx:'50%',cy:'50%',innerRadius:55,outerRadius:80,paddingAngle:3},
+              ...pieData.map(e=>React.createElement(Cell,{key:e.name,fill:e.color}))
+            ),
+            React.createElement(Tooltip,{contentStyle:{borderRadius:'8px',border:'1px solid #e5e7eb',fontSize:12}}),
+            React.createElement(Legend,{iconType:'circle',iconSize:8,wrapperStyle:{fontSize:12}})
           )
-        );
-      }
-
-      return React.createElement('div', { className: 'calls-card' },
-        React.createElement('div', { className: 'calls-card-header' },
-          React.createElement('div', { className: 'calls-card-title' }, 'Call History'),
-          React.createElement('div', { className: 'calls-count-badge' }, `${calls.length} calls`),
-        ),
-        loading
-          ? React.createElement('div', { style: { padding: '32px', textAlign: 'center', color: '#9ca3af', fontSize: 13 } },
-              React.createElement('span', { className: 'spinner' }),
-              ' Loading calls…'
-            )
-          : calls.length === 0
-          ? React.createElement('div', { className: 'empty-state' },
-              React.createElement('div', { className: 'empty-icon' }, '📭'),
-              React.createElement('div', { className: 'empty-title' }, 'No calls yet'),
-              React.createElement('div', { className: 'empty-sub' }, 'Make a call above to see it appear here'),
-            )
-          : React.createElement('div', { style: { overflowX: 'auto' } },
-              React.createElement('table', { className: 'calls-table' },
-                React.createElement('thead', null,
-                  React.createElement('tr', null,
-                    ...['Call ID', 'Started', 'Duration', 'Recording', 'Transcript', 'Analysis'].map(h =>
-                      React.createElement('th', { key: h }, h)
-                    )
-                  )
-                ),
-                React.createElement('tbody', null,
-                  ...calls.map(c =>
-                    React.createElement('tr', { key: c.call_id },
-                      React.createElement('td', null, React.createElement('span', { className: 'call-id-code' }, c.call_id.slice(0, 14) + '…')),
-                      React.createElement('td', null, fmtDate(c.started_at)),
-                      React.createElement('td', null, React.createElement('span', { className: 'duration-badge' }, fmtDuration(c.duration_seconds))),
-                      React.createElement('td', null,
-                        c.recording_url
-                          ? React.createElement('a', { className: 'recording-btn', href: c.recording_url, target: '_blank', rel: 'noopener' },
-                              '▶ Play'
-                            )
-                          : React.createElement('span', { className: 'no-recording' }, 'N/A')
-                      ),
-                      React.createElement('td', null,
-                        c.transcript
-                          ? React.createElement('div', null,
-                              React.createElement('div', { className: 'transcript-preview' }, c.transcript),
-                              React.createElement('span', {
-                                className: 'expand-transcript',
-                                onClick: () => openTranscript(c.transcript),
-                              }, 'View full')
-                            )
-                          : React.createElement('span', { className: 'no-recording' }, '—')
-                      ),
-                      React.createElement('td', null, renderPCA(c.analysis)),
-                    )
-                  )
-                )
-              )
-            )
+        )
       );
+    } else {
+      pieEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#9ca3af;font-size:13px">No data yet</div>`;
     }
+  }
+}
 
-    // ──────────────────────────────────────────
-    // AgentTab component
-    // ──────────────────────────────────────────
-    function AgentTab({ agentKey }) {
-      const agent = AGENTS[agentKey];
-      const [calls, setCalls] = useState([]);
-      const [loading, setLoading] = useState(true);
+// ─── Main render ──────────────────────────────────────────────────
+function renderTab(tab) {
+  if (tab === 'overview') {
+    renderOverview();
+  } else {
+    renderAgentTab(tab);
+  }
+}
 
-      useEffect(() => {
-        setLoading(true);
-        fetch(`${API_BASE}/api/calls?agentId=${agent.id}`)
-          .then(r => r.json())
-          .then(d => { setCalls(d.calls || []); setLoading(false); })
-          .catch(() => setLoading(false));
-      }, [agentKey]);
-
-      return React.createElement(React.Fragment, null,
-        // Call widget + quick stats in 2-col
-        React.createElement('div', { className: 'call-section' },
-          React.createElement(CallWidget, { agent }),
-          React.createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: 12 } },
-            React.createElement('div', { className: 'call-card', style: { flex: 1 } },
-              React.createElement('div', { className: 'call-agent-name', style: { fontSize: 15 } }, `About ${agent.name}`),
-              React.createElement('div', { style: { fontSize: 13, color: '#6b7280', marginTop: 8, lineHeight: 1.6 } },
-                agentKey === 'sara'
-                  ? 'Sara handles inbound FAQ support for HBL customers. She answers account queries, explains card features, provides branch info, and guides customers through common banking processes — fluently in both English and Urdu.'
-                  : agentKey === 'zara'
-                  ? 'Zara is HBL\'s AI sales specialist. She pitches loans, credit cards, and investment products. She qualifies leads, answers product questions, and books follow-up appointments for relationship managers.'
-                  : 'Nadia manages customer complaints and dispute resolution. She handles transaction errors, blocked cards, failed transfers, and escalates complex issues — with empathy and full context retention throughout.'
-              )
-            )
-          )
-        ),
-
-        // Stats
-        React.createElement(StatsCards, { calls, agent }),
-
-        // Charts
-        React.createElement(Charts, { calls, agent }),
-
-        // Table
-        React.createElement(CallsTable, { calls, loading }),
-      );
-    }
-
-    // ──────────────────────────────────────────
-    // Overview component
-    // ──────────────────────────────────────────
-    function Overview() {
-      const [allCalls, setAllCalls] = useState({ sara: [], zara: [], nadia: [] });
-      const [loading, setLoading] = useState(true);
-
-      useEffect(() => {
-        Promise.all(
-          Object.entries(AGENTS).map(([key, agent]) =>
-            fetch(`${API_BASE}/api/calls?agentId=${agent.id}`)
-              .then(r => r.json())
-              .then(d => [key, d.calls || []])
-              .catch(() => [key, []])
-          )
-        ).then(results => {
-          const map = {};
-          results.forEach(([k, v]) => map[k] = v);
-          setAllCalls(map);
-          setLoading(false);
-        });
-      }, []);
-
-      const totalAll = Object.values(allCalls).reduce((s, arr) => s + arr.length, 0);
-
-      const agentSummary = Object.entries(AGENTS).map(([key, agent]) => ({
-        key, agent,
-        total: allCalls[key].length,
-        avg: avgDuration(allCalls[key]),
-      }));
-
-      // Combined daily for area chart
-      const combined = {};
-      Object.values(allCalls).forEach(calls => {
-        calls.forEach(c => {
-          if (!c.started_at) return;
-          const d = new Date(c.started_at);
-          const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          combined[label] = (combined[label] || 0) + 1;
-        });
-      });
-      const combinedData = Object.entries(combined).slice(-14).map(([date, count]) => ({ date, count }));
-
-      // Pie data
-      const pieData = agentSummary.map(({ key, agent, total }) => ({
-        name: agent.name, value: total, color: agent.color,
-      }));
-
-      return React.createElement(React.Fragment, null,
-        // Hero stats
-        React.createElement('div', { className: 'stats-grid', style: { gridTemplateColumns: 'repeat(3,1fr)' } },
-          ...agentSummary.map(({ key, agent, total, avg }) =>
-            React.createElement('div', { key, className: 'stat-card', style: { borderTop: `3px solid ${agent.color}` } },
-              React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 } },
-                React.createElement('div', { style: { width: 10, height: 10, borderRadius: '50%', background: agent.color } }),
-                React.createElement('div', { style: { fontSize: 12, fontWeight: 600, color: '#6b7280' } }, `${agent.name} — ${agent.role}`),
-              ),
-              React.createElement('div', { className: 'stat-value' }, loading ? '…' : total),
-              React.createElement('div', { className: 'stat-sub' }, `Avg ${loading ? '…' : fmtDuration(avg)} per call`),
-            )
-          )
-        ),
-
-        // Combined chart + pie
-        React.createElement('div', { className: 'charts-row' },
-          React.createElement('div', { className: 'chart-card' },
-            React.createElement('div', { className: 'chart-title' }, 'Combined Call Volume'),
-            React.createElement('div', { className: 'chart-sub' }, 'All agents — last 14 days'),
-            React.createElement('div', { className: 'chart-area' },
-              combinedData.length > 0
-                ? React.createElement(ResponsiveContainer, { width: '100%', height: '100%' },
-                    React.createElement(AreaChart, { data: combinedData },
-                      React.createElement('defs', null,
-                        React.createElement('linearGradient', { id: 'grad-combined', x1: '0', y1: '0', x2: '0', y2: '1' },
-                          React.createElement('stop', { offset: '5%', stopColor: '#00c8f0', stopOpacity: 0.2 }),
-                          React.createElement('stop', { offset: '95%', stopColor: '#00c8f0', stopOpacity: 0 }),
-                        )
-                      ),
-                      React.createElement(CartesianGrid, { stroke: '#f3f4f6', vertical: false }),
-                      React.createElement(XAxis, { dataKey: 'date', tick: { fontSize: 11, fill: '#9ca3af' }, axisLine: false, tickLine: false }),
-                      React.createElement(YAxis, { tick: { fontSize: 11, fill: '#9ca3af' }, axisLine: false, tickLine: false, width: 30 }),
-                      React.createElement(Tooltip, { contentStyle: { borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: 12 } }),
-                      React.createElement(Area, { type: 'monotone', dataKey: 'count', stroke: '#00c8f0', strokeWidth: 2, fill: 'url(#grad-combined)' })
-                    )
-                  )
-                : React.createElement('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af', fontSize: 13 } }, 'No data yet')
-            )
-          ),
-          React.createElement('div', { className: 'chart-card' },
-            React.createElement('div', { className: 'chart-title' }, 'Distribution'),
-            React.createElement('div', { className: 'chart-sub' }, 'Calls per agent'),
-            React.createElement('div', { className: 'chart-area' },
-              totalAll > 0
-                ? React.createElement(ResponsiveContainer, { width: '100%', height: '100%' },
-                    React.createElement(PieChart, null,
-                      React.createElement(Pie, {
-                        data: pieData, dataKey: 'value',
-                        cx: '50%', cy: '50%', innerRadius: 55, outerRadius: 80,
-                        paddingAngle: 3,
-                      },
-                        ...pieData.map(entry =>
-                          React.createElement(Cell, { key: entry.name, fill: entry.color })
-                        )
-                      ),
-                      React.createElement(Tooltip, { contentStyle: { borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: 12 } }),
-                      React.createElement(Legend, { iconType: 'circle', iconSize: 8, wrapperStyle: { fontSize: 12 } }),
-                    )
-                  )
-                : React.createElement('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af', fontSize: 13 } }, 'No data yet')
-            )
-          )
-        ),
-      );
-    }
-
-    // ──────────────────────────────────────────
-    // Dashboard root
-    // ──────────────────────────────────────────
-    function Dashboard() {
-      const [activeTab, setActiveTab] = useState('overview');
-
-      useEffect(() => {
-        window.__switchTab = (tab) => setActiveTab(tab);
-      }, []);
-
-      useEffect(() => {
-        const titles = {
-          overview: 'Banking Voice Agents',
-          sara: 'Sara — FAQ Support',
-          zara: 'Zara — Sales',
-          nadia: 'Nadia — Complaints',
-        };
-        document.getElementById('topbar-title').textContent = titles[activeTab] || '';
-
-        // Update sidebar active state
-        ['overview', 'sara', 'zara', 'nadia'].forEach(id => {
-          const el = document.getElementById(`nav-${id}`);
-          if (el) el.classList.toggle('active', id === activeTab);
-        });
-        document.getElementById('nav-overview')?.classList.toggle('active', activeTab === 'overview');
-      }, [activeTab]);
-
-      return React.createElement(React.Fragment, null,
-        activeTab === 'overview'
-          ? React.createElement(Overview)
-          : React.createElement(AgentTab, { agentKey: activeTab, key: activeTab })
-      );
-    }
-
-    // ──────────────────────────────────────────
-    // Boot
-    // ──────────────────────────────────────────
-    document.getElementById('loading-view').remove();
-    const root = createRoot(document.getElementById('main-content'));
-    root.render(React.createElement(Dashboard));
-  </script>
-
-  <script>
-    // Auth guard
-    if (localStorage.getItem('banking_auth') !== 'authenticated') {
-      window.location.href = 'login.html';
-    }
-
-    function switchTab(tab) {
-      if (window.__switchTab) window.__switchTab(tab);
-    }
-
-    function logout() {
-      localStorage.removeItem('banking_auth');
-      window.location.href = 'login.html';
-    }
-
-    function closeModal(e) {
-      if (e.target === document.getElementById('modalOverlay')) {
-        document.getElementById('modalOverlay').classList.remove('open');
-      }
-    }
-
-    function closeModalDirect() {
-      document.getElementById('modalOverlay').classList.remove('open');
-    }
-  </script>
+// Boot
+renderTab('overview');
+</script>
 </body>
 </html>
